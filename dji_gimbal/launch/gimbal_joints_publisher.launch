@@ -1,19 +1,17 @@
 <launch>
-  <arg name="subtract_north"/>
+  <arg name="subtract_orientation"/>
   <arg name="baselink_frame_id"/>
   <arg name="gimbal_urdf_file"/>
 
   <group ns="dji_sdk">
     <node name="gimbal_joints_publisher" pkg="dji_gimbal" type="gimbal_joints_publisher.py" respawn="true" output="screen">
       <param name="baselink_frame_id" type="str" value="$(arg baselink_frame_id)" />
-      <param name="subtract_north" type="bool" value="$(arg subtract_north)" />
+      <param name="subtract_orientation" type="bool" value="$(arg subtract_orientation)" />
     </node>
     
     <param name="gimbal/robot_description" textfile="$(arg gimbal_urdf_file)"/>
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="gimbal_state_publisher" output="screen">
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="gimbal_state_publisher" >
       <param name="tf_prefix" type="string" value="DJI"/>
-      <param name="publish_frequency" type="double" value="100"/>
-      <!--param name="use_tf_static" type="bool" value="true"/-->
       <remap from="joint_states" to="gimbal_joint_states" />
       <remap from="robot_description" to="gimbal/robot_description"/>
     </node>

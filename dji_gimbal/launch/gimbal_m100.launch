@@ -1,7 +1,7 @@
 <launch>
   <!-- Gimbal state publisher for M600, SDK does publish with respect to North for M100-->
   <include file="$(find dji_gimbal)/launch/gimbal_joints_publisher.launch">
-    <arg name="subtract_north" value="true"/>
+    <arg name="subtract_orientation" value="true"/>
     <arg name="baselink_frame_id" value="/DJI/base_link"/>
     <arg name="gimbal_urdf_file" value="$(find dji_gimbal)/urdf/zenmuse_x3_gimbal.urdf"/>
   </include>
