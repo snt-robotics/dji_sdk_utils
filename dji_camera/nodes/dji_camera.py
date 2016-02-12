@@ -10,12 +10,86 @@ import numpy as np
 import rospy
 import tf2_ros
 
+import threading, Queue
+
 from functools import wraps, partial
 
 from robot_geometry_msgs.msg import RobotState
 from dji_sdk.srv import CameraAction
 
 from std_srvs.srv import Trigger, TriggerResponse
+
+class TakePictureThread(threading.Thread):
+
+  def __init__(self, queue, id):
+    super(TakePictureThread, self).__init__()
+    self.queue = queue
+    self.id = id
+    rospy.wait_for_service('camera_action')
+    self.camera_client = rospy.ServiceProxy('camera_action', CameraAction)
+
+  def run(self):
+    while not rospy.is_shutdown():
+      try:
+        msg = self.queue.get(block=False)
+        rospy.loginfo("{}: Thread {:02d}: Taking msg from the queue...".format(node_name, self.id))
+        self.handle_msg(msg)
+      except Queue.Empty:
+        pass
+      rospy.sleep(0.01)
+
+  def handle_msg(self, msg):
+
+    global stopped
+    if stopped:
+      rospy.logwarn("{}: Camera is stopped!".format(node_name))
+      return
+
+    waypoint_reached_time = msg.header.stamp
+    before_calling_camera = rospy.Time.now()
+
+
+    try:
+      self.camera_client(0)
+    except rospy.ServiceException as exc:
+      rospy.loginfo("{}: Thread {:02d}: Service did not process request: ".format(node_name, self.id, exc))
+
+
+    rospy.loginfo("{}: Picture was taken!".format(node_name))
+
+    global counter
+    for pair in frame_id_pairs:
+
+      source_frame_id = pair['source_frame_id']
+      target_frame_id = pair['target_frame_id']
+      writer = pair['writer']
+
+      rospy.loginfo(('{}: Looking for transform '
+                     'from {} to {} at time {:.3f}'
+                     ).format(node_name,
+                              source_frame_id,
+                              target_frame_id,
+                              waypoint_reached_time.to_sec()))
+
+
+      waypoint_time = True
+      transform = get_transform(source_frame_id, target_frame_id, waypoint_reached_time)
+      if transform is None:
+        rospy.logwarn(("{}: Obtaining transform at waypoint time failed!"
+                       " Trying at camera picture taken time!").format(node_name))
+        transform = get_transform(source_frame_id, target_frame_id, before_calling_camera)
+        waypoint_time = False
+
+      row = [
+        counter,
+        waypoint_reached_time.to_sec(),
+        before_calling_camera.to_sec()
+      ] + transform_msg_to_list(transform) + [waypoint_time]
+      writer.writerow(dict(zip(fieldnames, row)))
+      pair['file'].flush()
+
+    counter += 1
+
 
 def get_transform(source_frame, target_frame, at_time):
   transform = None
@@ -49,50 +123,11 @@ def stop_camera(request):
   stopped = True
   return TriggerResponse(True, "Camera stopped!")
 
-def waypoint_reached_callback(msg):
-
-  global stopped
-  if stopped:
-    rospy.logwarn("{}: Camera is stopped!".format(node_name))
-    return
-
-  waypoint_reached_time = msg.header.stamp
-  before_calling_camera = rospy.Time.now()
-  camera_client(0);
-  rospy.loginfo("{}: Picture was taken!".format(node_name))
-
-  global counter
-  for pair in frame_id_pairs:
-
-    source_frame_id = pair['source_frame_id']
-    target_frame_id = pair['target_frame_id']
-    writer = pair['writer']
-
-    rospy.loginfo(('{}: Looking for transform '
-                   'from {} to {} at time {:.3f}'
-                   ).format(node_name,
-                            source_frame_id,
-                            target_frame_id,
-                            waypoint_reached_time.to_sec()))
-
-
-    waypoint_time = True
-    transform = get_transform(source_frame_id, target_frame_id, waypoint_reached_time)
-    if transform is None:
-      rospy.logwarn(("{}: Obtaining transform at waypoint time failed!"
-                     " Trying at camera picture taken time!").format(node_name))
-      transform = get_transform(source_frame_id, target_frame_id, before_calling_camera)
-      waypoint_time = False
-
-    row = [
-      counter,
-      waypoint_reached_time.to_sec(),
-      before_calling_camera.to_sec()
-    ] + transform_msg_to_list(transform) + [waypoint_time]
-    writer.writerow(dict(zip(fieldnames, row)))
-    pair['file'].flush()
-
-  counter += 1
+def waypoint_reached_callback(msg, queue):
+  try:
+    queue.put(msg, block=False)
+  except Queue.Full:
+    pass
 
 rospy.init_node('dji_camera')
 
@@ -151,15 +186,21 @@ for pair in frame_id_pairs:
 
 counter = 0
 
-rospy.wait_for_service('camera_action')
-camera_client = rospy.ServiceProxy('camera_action', CameraAction)
-
 rospy.Service('~start', Trigger, start_camera)
 rospy.Service('~stop', Trigger, stop_camera)
 
-rospy.Subscriber('waypoint_reached', RobotState, waypoint_reached_callback)
+msg_queue = Queue.Queue()
+callback = lambda msg: waypoint_reached_callback(msg, msg_queue)
+rospy.Subscriber('waypoint_reached', RobotState, callback)
+
+take_picture_threads = [TakePictureThread(msg_queue, id) for id in range(10)]
+for t in take_picture_threads:
+  t.start()
 
 rospy.spin()
 
 for pair in frame_id_pairs:
   pair['file'].close()
+
+for t in take_picture_threads:
+  t.join()
