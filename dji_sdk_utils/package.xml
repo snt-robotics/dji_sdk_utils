@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package>
+  <name>dji_sdk_utils</name>
+  <version>0.0.1</version>
+  <description>The dji_sdk_utils package contains various tools for improving experience with the DJI drones</description>
+  <maintainer email="maciej.zurad@gmail.com">Maciej Zurad</maintainer>
+
+  <license>MIT</license>
+
+  <author email="maciej.zurad@gmail.com">Maciej Zurad</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <run_depend>att_quat_to_transform</run_depend>
+
+  <export>
+     <metapackage/>
+   </export>
+
+</package>
