@@ -1,0 +1,8 @@
+<launch>
+  <group ns="dji_sdk">
+    <node name="rtk_to_cartesian_coord" pkg="dji_rtk_tools" type="rtk_to_cartesian_coord.py" respawn="true" output="screen">
+        <param name="world_frame_id" type="str" value="/world" />
+        <param name="baselink_translation_frame_id"   type="str" value="/DJI/base_link" />
+    </node>
+  </group>
+</launch>
