@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import rosbag, argparse, simplekml, pytz
+import rosbag, argparse, simplekml
 from datetime import datetime
 from tqdm import tqdm
 
@@ -44,11 +44,11 @@ if __name__ == '__main__':
 
   kml = simplekml.Kml(name="Tracks", open=1)
   doc = kml.newdocument(name='GPS device', snippet=simplekml.Snippet('Created Wed Jun 2 15:33:39 2010'))
-  doc.lookat.gxtimespan.begin = '2010-05-28T02:02:09Z'
-  doc.lookat.gxtimespan.end = '2010-05-28T02:02:56Z'
-  doc.lookat.longitude = -122.205544
-  doc.lookat.latitude = 37.373386
-  doc.lookat.range = 1300.000000
+  doc.lookat.gxtimespan.begin = timestamps[0]
+  doc.lookat.gxtimespan.end   = timestamps[1]
+  doc.lookat.longitude = coords[0][0]
+  doc.lookat.latitude  = coords[0][1]
+  doc.lookat.range     = coords[0][2] + 20
 
   fol = doc.newfolder(name='UAV Track')
   trk = fol.newgxtrack(name='2010-05-28T01:16:35.000Z')
@@ -57,12 +57,12 @@ if __name__ == '__main__':
   trk.newgxcoord(coords)
 
   trk.stylemap.normalstyle.iconstyle.icon.href = 'http://earth.google.com/images/kml-icons/track-directional/track-0.png'
-  trk.stylemap.normalstyle.linestyle.color = '99ffac59'
-  trk.stylemap.normalstyle.linestyle.width = 6
+  trk.stylemap.normalstyle.linestyle.color = 'ff000000'
+  trk.stylemap.normalstyle.linestyle.width = 12
   trk.stylemap.highlightstyle.iconstyle.icon.href = 'http://earth.google.com/images/kml-icons/track-directional/track-0.png'
   trk.stylemap.highlightstyle.iconstyle.scale = 1.2
-  trk.stylemap.highlightstyle.linestyle.color = '99ffac59'
-  trk.stylemap.highlightstyle.linestyle.width = 8
+  trk.stylemap.highlightstyle.linestyle.color = 'ff000000'
+  trk.stylemap.highlightstyle.linestyle.width = 16
 
 
   kml.save(args.output)

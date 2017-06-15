@@ -4,6 +4,12 @@ project(dji_rtk_tools)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   dji_sdk
+  std_msgs
+  std_srvs
+  geometry_msgs
+  rospy
+  tf2_ros
+  tf
 )
 
 catkin_python_setup()

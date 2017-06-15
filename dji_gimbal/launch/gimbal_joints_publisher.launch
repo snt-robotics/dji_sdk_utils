@@ -1,6 +1,6 @@
 <launch>
   <group ns="dji_sdk">
-    <node name="dji_gimbal_joints_publisher" pkg="dji_gimbal" type="dji_gimbal_joints_publisher.py" respawn="true" output="screen">
+    <node name="gimbal_joints_publisher" pkg="dji_gimbal" type="gimbal_joints_publisher.py" respawn="true" output="screen">
     </node>
     
     <param name="gimbal/robot_description" textfile="$(find dji_gimbal)/urdf/gimbal.urdf"/>

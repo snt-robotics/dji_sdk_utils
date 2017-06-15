@@ -15,7 +15,7 @@ from geometry_msgs.msg import (
 
 NODE_NAME = 'att_quat_to_transform'
 
-def attitude_quaternion_callback(data):
+def attitude_quaternion_callback(msg):
   '''
   DJI SDK defines quaternion as (w x y z)
   ROS defines quaternion as (x y z w)
@@ -33,9 +33,9 @@ def attitude_quaternion_callback(data):
 
   '''
 
-  time = data.header.stamp
+  time = msg.header.stamp
 
-  quat = (data.q1, -data.q2, -data.q3, data.q0)
+  quat = (msg.q1, -msg.q2, -msg.q3, msg.q0)
   h = Header()
   h.stamp = time
   h.frame_id = baselink_translation_frame_id

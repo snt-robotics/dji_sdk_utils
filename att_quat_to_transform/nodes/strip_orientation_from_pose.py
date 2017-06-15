@@ -11,13 +11,13 @@ from geometry_msgs.msg import (
 
 NODE_NAME = 'strip_orientation_from_pose'
 
-def dji_pose_stamped_callback(data):
+def dji_pose_stamped_callback(msg):
   '''
   Strip orientation from pose stamped  
   '''
 
   #time = rospy.Time.now()
-  time = data.header.stamp
+  time = msg.header.stamp
 
   h = Header()
   h.stamp = time
@@ -27,7 +27,7 @@ def dji_pose_stamped_callback(data):
   t_stamped.header = h
   t_stamped.child_frame_id = baselink_translation_frame_id
   t_stamped.transform = Transform()
-  t_stamped.transform.translation = data.pose.position 
+  t_stamped.transform.translation = msg.pose.position 
   t_stamped.transform.rotation = Quaternion(0, 0, 0, 1) 
   tf_broadcaster.sendTransform(t_stamped)
 
