@@ -4,5 +4,12 @@
         <param name="world_frame_id" type="str" value="/world" />
         <param name="baselink_translation_frame_id"   type="str" value="/DJI/base_link" />
     </node>
+
+    <node pkg="hector_trajectory_server" type="hector_trajectory_server" name="hector_trajectory_server" output="screen">
+      <param name="target_frame_name" type="string" value="/world" />
+      <param name="source_frame_name" type="string" value="/DJI/base_link" />
+      <param name="trajectory_update_rate" type="double" value="30" />
+      <param name="trajectory_publish_rate" type="double" value="20" />
+  </node>
   </group>
 </launch>
