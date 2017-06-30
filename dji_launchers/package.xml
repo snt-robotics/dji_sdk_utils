@@ -1,0 +1,15 @@
+<?xml version="0.0.1"?>
+<package>
+  <name>dji_launchers</name>
+  <version>0.0.0</version>
+  <description>The dji_launchers package contains laucher scripts for various drones and environments</description>
+
+  <maintainer email="maciej.zurad@gmail.com">ros</maintainer>
+  <license>MIT</license>
+
+  <author email="maciej.zurad@gmail.com">Maciej Zurad</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <export></export>
+</package>

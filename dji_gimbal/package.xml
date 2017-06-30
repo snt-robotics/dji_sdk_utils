@@ -6,11 +6,8 @@
   <maintainer email="maciej.zurad@gmail.com">Maciej Zurad</maintainer>
 
   <license>MIT</license>
-
   <author email="maciej.zurad@gmail.com">Maciej Zurad</author>
 
-
-  <!-- TODO - check dependencies -->
   <buildtool_depend>catkin</buildtool_depend>
   
   <build_depend>rospy</build_depend>

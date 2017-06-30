@@ -1,0 +1,12 @@
+<launch>
+
+  <!-- DJI SDK -->
+  <include file="$(find dji_sdk)/launch/sdk_manifold.launch"/>
+
+  <!-- Absolute quaternion transform publisher in Lab-->
+  <include file="$(find dji_att_quat_to_transform)/launch/att_quat_to_transform_lab.launch"/>
+
+  <!-- M100 Gimbal publisher -->
+  <include file="$(find dji_gimbal)/launch/gimbal_joints_publisher.launch"/>
+
+</launch>
