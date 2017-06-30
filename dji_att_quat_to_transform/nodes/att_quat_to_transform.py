@@ -46,11 +46,11 @@ def attitude_quaternion_callback(msg):
   """
 
   if not map_frame_id:
-    rospy.warn('Map frame id is not defined!')
+    rospy.logwarn('Map frame id is not defined!')
     return
 
   if not baselink_translation_frame_id:
-    rospy.warn('Baselink translation frame id is not defined!')
+    rospy.logwarn('Baselink translation frame id is not defined!')
     return
 
   time = msg.header.stamp
