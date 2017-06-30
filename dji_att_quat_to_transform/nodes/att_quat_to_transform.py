@@ -24,6 +24,9 @@ from geometry_msgs.msg import (
 
 NODE_NAME = 'att_quat_to_transform'
 
+map_frame_id = None
+baselink_translation_frame_id = None
+
 def attitude_quaternion_callback(msg):
   """
   DJI SDK defines quaternion as (w x y z)
@@ -41,6 +44,14 @@ def attitude_quaternion_callback(msg):
   NED       ==>   ENU
 
   """
+
+  if not map_frame_id:
+    rospy.warn('Map frame id is not defined!')
+    return
+
+  if not baselink_translation_frame_id:
+    rospy.warn('Baselink translation frame id is not defined!')
+    return
 
   time = msg.header.stamp
 

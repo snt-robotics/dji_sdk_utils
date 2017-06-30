@@ -5,6 +5,7 @@
     
     <param name="gimbal/robot_description" textfile="$(find dji_gimbal)/urdf/zenmuse_x3_gimbal.urdf"/>
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="gimbal_state_publisher" >
+      <param name="baselink_frame_id" type="str" value="/DJI/base_link" />
       <param name="tf_prefix" type="string" value="DJI"/>
       <remap from="joint_states" to="gimbal_joint_states" />
       <remap from="robot_description" to="gimbal/robot_description"/>

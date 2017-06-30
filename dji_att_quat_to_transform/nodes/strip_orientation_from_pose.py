@@ -20,10 +20,21 @@ from geometry_msgs.msg import (
 
 NODE_NAME = 'strip_orientation_from_pose'
 
+map_frame_id = None
+baselink_translation_frame_id = None
+
 def dji_pose_stamped_callback(msg):
   """
   Strip orientation from pose stamped  
   """
+
+  if not map_frame_id:
+    rospy.warn('Map frame id is not defined!')
+    return
+
+  if not baselink_translation_frame_id:
+    rospy.warn('Baselink translation frame id is not defined!')
+    return
 
   #time = rospy.Time.now()
   time = msg.header.stamp

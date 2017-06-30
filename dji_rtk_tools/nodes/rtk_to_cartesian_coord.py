@@ -21,6 +21,9 @@ current_position = None
 initial_position = None
 last_position_timestamp = None
 
+map_frame_id = None
+baselink_translation_frame_id = None
+
 def warn_every(steps = 50):  
   class nonlocal:
     counter = 0
@@ -36,6 +39,15 @@ def geopoint_to_list(gp, degrees=True):
   return pos if not degrees else map(math.degrees, pos[:2]) + [pos[2]]
 
 def a3_rtk_callback(msg):
+
+  if not map_frame_id:
+    rospy.warn('Map frame id is not defined!')
+    return
+
+  if not baselink_translation_frame_id:
+    rospy.warn('Baselink translation frame id is not defined!')
+    return
+
   lat = msg.latitude_RTK
   lon = msg.longitude_RTK
   alt = msg.height_above_sea_RTK
@@ -71,7 +83,7 @@ def a3_rtk_callback(msg):
 
   h = Header()
   h.stamp = rospy.Time.now()
-  h.frame_id = world_frame_id
+  h.frame_id = map_frame_id
 
   p_stamped = PoseStamped()
   p_stamped.header = h
@@ -114,10 +126,10 @@ rospy.Service('set_current_position_as_initial', Trigger, set_current_position_a
 tf_broadcaster = tf2_ros.TransformBroadcaster()
 global_position_pub = rospy.Publisher('global_rtk', PoseStamped, queue_size = 1)
 
-world_frame_id = rospy.get_param('~world_frame_id')
+map_frame_id = rospy.get_param('~map_frame_id')
 baselink_translation_frame_id = rospy.get_param('~baselink_translation_frame_id')
 
-rospy.loginfo('%s: Assuming world frame id to be: %s', NODE_NAME, world_frame_id)
+rospy.loginfo('%s: Assuming map frame id to be: %s', NODE_NAME, map_frame_id)
 rospy.loginfo('%s: Assuming baselink translation (no orientation) frame id to be: %s', NODE_NAME, baselink_translation_frame_id)
 
 rospy.spin()

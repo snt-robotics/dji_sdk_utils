@@ -15,8 +15,10 @@ from sensor_msgs.msg import JointState
 NODE_NAME = 'gimbal_joints_publisher'
 JOINTS = ['yaw', 'roll', 'pitch']
 
-convert_degrees_to_std_range = lambda x: ( x + math.pi) % (2 * math.pi ) - math.pi
+baselink_frame_id = None
+
 current_yaw_to_north = None
+convert_degrees_to_std_range = lambda x: ( x + math.pi) % (2 * math.pi ) - math.pi
 
 def attitude_quaternion_callback(msg):
   q = (msg.q1, msg.q2, msg.q3, msg.q0)
@@ -27,12 +29,17 @@ def attitude_quaternion_callback(msg):
   current_yaw_to_north = yaw
 
 def gimbal_callback(msg):
+
+  if not baselink_frame_id:
+    rospy.warn('~baselink_frame_id is not defined!')
+    return
+
   h = Header()
   h.stamp = msg.header.stamp
-  h.frame_id = '/DJI/base_link'
+  h.frame_id = baselink_frame_id
 
   if not current_yaw_to_north:
-    rospy.logwarn('%s: Did NOT receive /attitude_quaternion msg, so can\'t corrent to north', NODE_NAME)
+    rospy.logwarn('%s: Did NOT receive ~attitude_quaternion msg, so can\'t corrent to north', NODE_NAME)
     return
 
   joint_states = JointState()
@@ -48,5 +55,7 @@ rospy.Subscriber('gimbal', Gimbal, gimbal_callback)
 rospy.Subscriber('attitude_quaternion', AttitudeQuaternion, attitude_quaternion_callback)
 
 gimbal_joint_states_pub = rospy.Publisher('gimbal_joint_states', JointState, queue_size = 1)
+
+baselink_frame_id = rospy.get_param('~baselink_frame_id')
 
 rospy.spin()
