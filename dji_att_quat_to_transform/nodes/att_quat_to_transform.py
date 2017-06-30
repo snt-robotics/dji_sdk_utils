@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+"""
+Converts the AttitudeQuaternion message into ROS REP103 standard
+Publishes the message as a tf transform given frame ids, as well
+as PoseStamped message
+
+The orientation is given with respect to ENU frame!
+OptiTrack Lab has to account for this and correct by rotating to North
+"""
+
 import rospy
 import tf, tf2_ros
 from dji_sdk.msg import AttitudeQuaternion
@@ -16,7 +25,7 @@ from geometry_msgs.msg import (
 NODE_NAME = 'att_quat_to_transform'
 
 def attitude_quaternion_callback(msg):
-  '''
+  """
   DJI SDK defines quaternion as (w x y z)
   ROS defines quaternion as (x y z w)
   Therefore we have to swap some values
@@ -31,7 +40,7 @@ def attitude_quaternion_callback(msg):
 
   NED       ==>   ENU
 
-  '''
+  """
 
   time = msg.header.stamp
 

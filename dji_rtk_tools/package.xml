@@ -30,7 +30,9 @@
   <run_depend>tf2_ros</run_depend>
   <run_depend>tf</run_depend>
 
-<run_depend>pip-simplekml</run_depend>
-<run_depend>pip-nvector</run_depend>
+  <!-- external dependencies -->
+  <run_depend>python-simplekml</run_depend>
+  <run_depend>python-nvector</run_depend>
+  <run_depend>pip-tqdm</run_depend>
 
 </package>

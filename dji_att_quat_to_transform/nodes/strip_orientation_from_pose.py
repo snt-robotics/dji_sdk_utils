@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+"""
+Strictly for testing purposes.
+
+Subscribes to /DJI/pose OptiTrack topic and republishes the
+/map -> /base_link without orientation such that we can apply
+the absolute orientation transform from the AttitudeQuaternion
+message
+"""
+
 import rospy
 import tf, tf2_ros
 from std_msgs.msg import Header
@@ -12,9 +21,9 @@ from geometry_msgs.msg import (
 NODE_NAME = 'strip_orientation_from_pose'
 
 def dji_pose_stamped_callback(msg):
-  '''
+  """
   Strip orientation from pose stamped  
-  '''
+  """
 
   #time = rospy.Time.now()
   time = msg.header.stamp

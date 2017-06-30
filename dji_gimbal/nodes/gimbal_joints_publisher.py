@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+"""
+Subscribes to Gimbal messages and republishes it as JointState message.
+So that we can transform to the Camera frame.
+
+Gimbal's yaw value is given with respect to North not drone's base_link.
+Therefore, we correct for it by subtracting the yaw to north value
+"""
+
 import rospy, math, tf_conversions
 from dji_sdk.msg import Gimbal, AttitudeQuaternion
 from std_msgs.msg import Header

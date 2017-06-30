@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>att_quat_to_transform</name>
+  <name>dji_att_quat_to_transform</name>
   <version>0.0.1</version>
-  <description>The att_quat_to_transform package transforms custom DJI attitude transform message into proper ROS generic messages</description>
+  <description>The dji_att_quat_to_transform package transforms custom DJI attitude transform message into proper ROS generic messages</description>
   <maintainer email="maciej.zurad@gmail.com">Maciej Zurad</maintainer>
 
   <license>MIT</license>
