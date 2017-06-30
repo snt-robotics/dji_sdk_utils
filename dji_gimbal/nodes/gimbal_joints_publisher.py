@@ -31,7 +31,7 @@ def attitude_quaternion_callback(msg):
 def gimbal_callback(msg):
 
   if not baselink_frame_id:
-    rospy.logwarn('~baselink_frame_id is not defined!')
+    rospy.logwarn('%s: ~baselink_frame_id is not defined!', NODE_NAME)
     return
 
   h = Header()

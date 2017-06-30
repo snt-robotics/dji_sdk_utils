@@ -29,11 +29,11 @@ def dji_pose_stamped_callback(msg):
   """
 
   if not map_frame_id:
-    rospy.logwarn('Map frame id is not defined!')
+    rospy.logwarn('%s: Map frame id is not defined!', NODE_NAME)
     return
 
   if not baselink_translation_frame_id:
-    rospy.logwarn('Baselink translation frame id is not defined!')
+    rospy.logwarn('%s: Baselink translation frame id is not defined!', NODE_NAME)
     return
 
   #time = rospy.Time.now()
