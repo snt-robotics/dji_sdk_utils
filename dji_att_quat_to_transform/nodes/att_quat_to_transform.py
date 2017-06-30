@@ -24,7 +24,7 @@ from geometry_msgs.msg import (
 
 NODE_NAME = 'att_quat_to_transform'
 
-map_frame_id = None
+estimated_baselink_frame_id = None
 baselink_translation_frame_id = None
 
 def attitude_quaternion_callback(msg):
@@ -45,12 +45,12 @@ def attitude_quaternion_callback(msg):
 
   """
 
-  if not map_frame_id:
-    rospy.logwarn('%s: Map frame id is not defined!', NODE_NAME)
+  if not estimated_baselink_frame_id:
+    rospy.logwarn('%s: ~estimated_baselink_frame_id id is not defined!', NODE_NAME)
     return
 
   if not baselink_translation_frame_id:
-    rospy.logwarn('%s: Baselink translation frame id is not defined!', NODE_NAME)
+    rospy.logwarn('%s: ~baselink_translation_frame_id is not defined!', NODE_NAME)
     return
 
   time = msg.header.stamp
@@ -80,8 +80,8 @@ local_orient_pose_pub = rospy.Publisher('local_orientation_pose', PoseStamped, q
 local_orient_transform_pub = rospy.Publisher('local_orientation_transform', TransformStamped, queue_size = 1)
 tf_broadcaster = tf2_ros.TransformBroadcaster()
 
-baselink_translation_frame_id = rospy.get_param('~baselink_translation_frame_id')
 estimated_baselink_frame_id   = rospy.get_param('~estimated_baselink_frame_id')
+baselink_translation_frame_id = rospy.get_param('~baselink_translation_frame_id')
 
 rospy.loginfo('%s: Assuming baselink translation (no orientation) frame id to be %s', NODE_NAME, baselink_translation_frame_id)
 rospy.loginfo('%s: Assuming estimated baselink frame id to be %s', NODE_NAME, estimated_baselink_frame_id)

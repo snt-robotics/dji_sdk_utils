@@ -41,11 +41,11 @@ def geopoint_to_list(gp, degrees=True):
 def a3_rtk_callback(msg):
 
   if not map_frame_id:
-    rospy.logwarn('%s: Map frame id is not defined!', NODE_NAME)
+    rospy.logwarn('%s: ~map_frame_id is not defined!', NODE_NAME)
     return
 
   if not baselink_translation_frame_id:
-    rospy.logwarn('%s: Baselink translation frame id is not defined!', NODE_NAME)
+    rospy.logwarn('%s: ~baselink_translation_frame_id is not defined!', NODE_NAME)
     return
 
   lat = msg.latitude_RTK
