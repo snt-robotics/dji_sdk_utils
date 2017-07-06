@@ -7,6 +7,6 @@
   <include file="$(find dji_att_quat_to_transform)/launch/att_quat_to_transform_lab.launch"/>
 
   <!-- M100 Gimbal publisher -->
-  <include file="$(find dji_gimbal)/launch/gimbal_joints_publisher.launch"/>
+  <include file="$(find dji_gimbal)/launch/gimbal_m100.launch"/>
 
 </launch>

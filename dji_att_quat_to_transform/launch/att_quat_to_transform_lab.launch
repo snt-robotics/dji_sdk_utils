@@ -1,8 +1,7 @@
 <launch>
 
   <!--
-    
-    Ground Truth translation from /map (OptiTrack) to UAV's baselink
+    Ground Truth translation from /map (OptiTrack) to UAV's baselink without orientation
     /map -> /DJI/base_link_no_orientation
 
     Rotation of UAV's baselink to North
@@ -13,7 +12,6 @@
 
     now GT from OptiTrack is very close to /DJI/base_link_estimated
     /DJI/base_link ~~~ /DJI/base_link_estimated
-
   -->
 
   <group ns="dji_sdk">
@@ -32,5 +30,6 @@
     <node name="north_correction" pkg="tf" type="static_transform_publisher" respawn="true" output="screen" 
       args="0 0 0 0.776 0 0 /DJI/base_link_no_orientation /DJI/base_link_no_orientation_north_corrected 100">
     </node>
+
   </group>
 </launch>

@@ -1,10 +1,15 @@
 <launch>
+  <arg name="subtract_north"/>
+  <arg name="baselink_frame_id"/>
+  <arg name="gimbal_urdf_file"/>
+
   <group ns="dji_sdk">
     <node name="gimbal_joints_publisher" pkg="dji_gimbal" type="gimbal_joints_publisher.py" respawn="true" output="screen">
-      <param name="baselink_frame_id" type="str" value="/DJI/base_link" />
+      <param name="baselink_frame_id" type="str" value="$(arg baselink_frame_id)" />
+      <param name="subtract_north" type="bool" value="$(arg subtract_north)" />
     </node>
     
-    <param name="gimbal/robot_description" textfile="$(find dji_gimbal)/urdf/zenmuse_x3_gimbal.urdf"/>
+    <param name="gimbal/robot_description" textfile="$(arg gimbal_urdf_file)"/>
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="gimbal_state_publisher" >
       <param name="tf_prefix" type="string" value="DJI"/>
       <remap from="joint_states" to="gimbal_joint_states" />

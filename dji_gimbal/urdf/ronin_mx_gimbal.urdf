@@ -1,0 +1,35 @@
+<robot name="dji_gimbal">
+  <link name="base_link" />
+  <link name="gimbal_base/yaw" />
+  <link name="gimbal_base/roll" />
+  <link name="gimbal_base/pitch" />
+  <link name="gimbal_base/camera" />
+
+  <joint name="yaw" type="continuous">
+    <parent link="base_link"/>
+    <child link="gimbal_base/yaw"/>
+    <origin xyz="0 0 -0.22" rpy="0 0 0" />
+    <axis xyz="0 0 -1" />
+  </joint>
+
+  <joint name="roll" type="continuous">
+    <parent link="gimbal_base/yaw"/>
+    <child link="gimbal_base/roll"/>
+    <origin xyz="-0.13 0 -0.156" rpy="0 0 0" />
+    <axis xyz="1 0 0" />
+  </joint>
+
+  <joint name="pitch" type="continuous">
+    <parent link="gimbal_base/roll"/>
+    <child link="gimbal_base/pitch"/>
+    <origin xyz="0.1625 -0.10 0" rpy="0 0 0" />
+    <axis xyz="0 -1 0" />
+  </joint>
+
+  <joint name="camera_fixed" type="fixed">
+    <parent link="gimbal_base/pitch"/>
+    <child link="gimbal_base/camera"/>
+    <origin xyz="0 0.11 0" rpy="0 0 0" />
+  </joint>
+
+</robot>

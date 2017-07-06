@@ -1,0 +1,31 @@
+<launch>
+
+  <!-- DJI SDK -->
+  <include file="$(find dji_sdk)/launch/sdk_manifold.launch"/>
+
+  <!-- Pose estimation using Attitude Quaternion and RTK !-->
+  <group ns="dji_sdk">
+   
+    <node name="att_quat_to_transform" pkg="dji_att_quat_to_transform" type="att_quat_to_transform.py" respawn="true" output="screen">
+      <param name="baselink_translation_frame_id" type="str" value="/DJI/base_link_no_orientation" />
+      <param name="estimated_baselink_frame_id"   type="str" value="/DJI/base_link" />
+    </node>
+
+    <node name="rtk_to_cartesian_coord" pkg="dji_rtk_tools" type="rtk_to_cartesian_coord.py" respawn="true" output="screen">
+      <param name="map_frame_id" type="str" value="/map" />
+      <param name="baselink_translation_frame_id" type="str" value="/DJI/base_link_no_orientation" />
+    </node>
+
+    <node pkg="hector_trajectory_server" type="hector_trajectory_server" name="hector_trajectory_server" output="screen">
+      <param name="target_frame_name" type="string" value="/map" />
+      <param name="source_frame_name" type="string" value="/DJI/base_link" />
+      <param name="trajectory_update_rate" type="double" value="30" />
+      <param name="trajectory_publish_rate" type="double" value="20" />
+    </node>
+
+  </group>
+
+  <!-- M100 Gimbal publisher -->
+  <include file="$(find dji_gimbal)/launch/gimbal_m600.launch"/>
+
+</launch>

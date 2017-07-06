@@ -1,2 +1,3 @@
 dji_rtk_tools/test-rosbags
 dji_to_ros
+*.kml

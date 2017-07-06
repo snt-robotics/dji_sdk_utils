@@ -16,14 +16,15 @@ NODE_NAME = 'gimbal_joints_publisher'
 JOINTS = ['yaw', 'roll', 'pitch']
 
 baselink_frame_id = None
+subtract_north = None
 
-current_yaw_to_north = None
-convert_degrees_to_std_range = lambda x: ( x + math.pi) % (2 * math.pi ) - math.pi
+current_yaw_to_north = 0.0
+convert_radians_to_std_range = lambda x: ( x + math.pi) % (2 * math.pi ) - math.pi
 
 def attitude_quaternion_callback(msg):
   q = (msg.q1, msg.q2, msg.q3, msg.q0)
   _, _, yaw = tf_conversions.transformations.euler_from_quaternion(q)
-  yaw = convert_degrees_to_std_range(yaw)
+  yaw = convert_radians_to_std_range(yaw)
   yaw = math.degrees(yaw)
   global current_yaw_to_north
   current_yaw_to_north = yaw
@@ -38,7 +39,7 @@ def gimbal_callback(msg):
   h.stamp = msg.header.stamp
   h.frame_id = baselink_frame_id
 
-  if not current_yaw_to_north:
+  if not current_yaw_to_north and subtract_north:
     rospy.logwarn('%s: Did NOT receive ~attitude_quaternion msg, so can\'t corrent to north', NODE_NAME)
     return
 
@@ -51,11 +52,16 @@ def gimbal_callback(msg):
   gimbal_joint_states_pub.publish(joint_states)
 
 rospy.init_node(NODE_NAME)
-rospy.Subscriber('gimbal', Gimbal, gimbal_callback)
-rospy.Subscriber('attitude_quaternion', AttitudeQuaternion, attitude_quaternion_callback)
-
-gimbal_joint_states_pub = rospy.Publisher('gimbal_joint_states', JointState, queue_size = 1)
 
 baselink_frame_id = rospy.get_param('~baselink_frame_id')
+subtract_north = rospy.get_param('~subtract_north')
+
+rospy.Subscriber('gimbal', Gimbal, gimbal_callback)
+
+if subtract_north: 
+  rospy.Subscriber('attitude_quaternion', AttitudeQuaternion, attitude_quaternion_callback)
+  rospy.loginfo('Gimbal Yaw will be corrected to base_link by subtracting the angle to North')
+
+gimbal_joint_states_pub = rospy.Publisher('gimbal_joint_states', JointState, queue_size = 1)
 
 rospy.spin()
