@@ -3,6 +3,7 @@ import rospy, math
 import tf, tf2_ros
 import nvector as nv
 from dji_sdk.msg import A3RTK
+from sensor_msgs.msg import NavSatFix
 from std_msgs.msg import Header
 from std_srvs.srv import Trigger, TriggerResponse
 from geometry_msgs.msg import (
@@ -34,19 +35,23 @@ def warn_every(steps = 50):
     nonlocal.counter += 1
   return logwarn
 
+def geopoint_to_msg(gp):
+  h = Header()
+  h.stamp = rospy.Time.now()
+  h.frame_id = map_frame_id
+
+  msg = NavSatFix()
+  msg.header = h
+  msg.latitude = gp.latitude
+  msg.longitude = gp.longitude
+  msg.altitude = gp.z
+  return msg
+
 def geopoint_to_list(gp, degrees=True):
   pos = [gp.latitude, gp.longitude, gp.z]
   return pos if not degrees else map(math.degrees, pos[:2]) + [pos[2]]
 
 def a3_rtk_callback(msg):
-
-  if not map_frame_id:
-    rospy.logwarn('%s: ~map_frame_id is not defined!', NODE_NAME)
-    return
-
-  if not baselink_translation_frame_id:
-    rospy.logwarn('%s: ~baselink_translation_frame_id is not defined!', NODE_NAME)
-    return
 
   lat = msg.latitude_RTK
   lon = msg.longitude_RTK
@@ -78,7 +83,7 @@ def a3_rtk_callback(msg):
   transform_in_ENU = [
     transform_in_NED[1], 
     transform_in_NED[0], 
-    -transform_in_NED[2]
+    transform_in_NED[2]
   ]
 
   h = Header()
@@ -121,15 +126,24 @@ warn_invalid_position = warn_every(50)
 warn_no_initial_position = warn_every(50)
 
 rospy.init_node(NODE_NAME)
-rospy.Subscriber('A3_RTK', A3RTK, a3_rtk_callback)
-rospy.Service('set_current_position_as_initial', Trigger, set_current_position_as_initial)
-tf_broadcaster = tf2_ros.TransformBroadcaster()
-global_position_pub = rospy.Publisher('global_rtk', PoseStamped, queue_size = 1)
 
 map_frame_id = rospy.get_param('~map_frame_id')
 baselink_translation_frame_id = rospy.get_param('~baselink_translation_frame_id')
 
 rospy.loginfo('%s: Assuming map frame id to be: %s', NODE_NAME, map_frame_id)
-rospy.loginfo('%s: Assuming baselink translation (no orientation) frame id to be: %s', NODE_NAME, baselink_translation_frame_id)
+rospy.loginfo('%s: Assuming baselink translation (no orientation) frame id to be: %s', \
+  NODE_NAME, baselink_translation_frame_id)
 
-rospy.spin()
+tf_broadcaster = tf2_ros.TransformBroadcaster()
+
+rospy.Subscriber('A3_RTK', A3RTK, a3_rtk_callback)
+rospy.Service('set_current_position_as_initial', Trigger, set_current_position_as_initial)
+global_position_pub  = rospy.Publisher('global_rtk', PoseStamped, queue_size = 1)
+initial_position_pub = rospy.Publisher('initial_position', NavSatFix, queue_size = 1)
+
+r = rospy.Rate(1)
+while not rospy.is_shutdown():
+  if initial_position:
+    msg = geopoint_to_msg(initial_position)
+    initial_position_pub.publish(msg)
+  r.sleep()
