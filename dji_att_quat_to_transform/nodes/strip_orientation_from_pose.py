@@ -52,7 +52,7 @@ def dji_pose_stamped_callback(msg):
   tf_broadcaster.sendTransform(t_stamped)
 
 rospy.init_node(NODE_NAME)
-rospy.Subscriber('/DJI/pose', PoseStamped, dji_pose_stamped_callback)
+rospy.Subscriber('base_link', PoseStamped, dji_pose_stamped_callback)
 tf_broadcaster = tf2_ros.TransformBroadcaster()
 
 map_frame_id = rospy.get_param('~map_frame_id')
