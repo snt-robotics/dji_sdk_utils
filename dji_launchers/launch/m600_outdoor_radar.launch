@@ -11,10 +11,10 @@
       <param name="estimated_baselink_frame_id"   type="str" value="/DJI/base_link" />
     </node>
 
-    <!--node name="rtk_to_cartesian_coord" pkg="dji_rtk_tools" type="rtk_to_cartesian_coord.py" respawn="true" output="screen"-->
-      <!--param name="map_frame_id" type="str" value="/map" /-->
-      <!--param name="baselink_translation_frame_id" type="str" value="/DJI/base_link_no_orientation" /-->
-    <!--/node-->
+    <node name="rtk_to_cartesian_coord" pkg="dji_rtk_tools" type="rtk_to_cartesian_coord.py" respawn="true" output="screen">
+      <param name="map_frame_id" type="str" value="/map" />
+      <param name="baselink_translation_frame_id" type="str" value="/DJI/base_link_no_orientation" />
+    </node>
 
     <node name="enu_to_body" pkg="tf" type="static_transform_publisher" respawn="true" output="screen" 
       args="0 0 0 1.57079632 0 0 /DJI/base_link_no_orientation /DJI/base_link_no_orientation_body 100">
@@ -32,6 +32,7 @@
   <!-- M100 Gimbal publisher -->
   <include file="$(find dji_gimbal)/launch/gimbal_m600.launch"/>
 
+  <!-- University of Luxembourg, outdoor around the radar flight -->
   <node name="map_to_radar" pkg="tf2_ros" type="static_transform_publisher" respawn="true" output="screen" 
     args="0 0 0 0.767945 0 0 /map /radar">
   </node>
