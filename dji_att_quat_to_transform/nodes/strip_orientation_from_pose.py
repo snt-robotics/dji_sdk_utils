@@ -28,15 +28,6 @@ def dji_pose_stamped_callback(msg):
   Strip orientation from pose stamped  
   """
 
-  if not map_frame_id:
-    rospy.logwarn('%s: ~map_frame_id is not defined!', NODE_NAME)
-    return
-
-  if not baselink_translation_frame_id:
-    rospy.logwarn('%s: ~baselink_translation_frame_id is not defined!', NODE_NAME)
-    return
-
-  #time = rospy.Time.now()
   time = msg.header.stamp
 
   h = Header()
@@ -52,13 +43,14 @@ def dji_pose_stamped_callback(msg):
   tf_broadcaster.sendTransform(t_stamped)
 
 rospy.init_node(NODE_NAME)
-rospy.Subscriber('base_link', PoseStamped, dji_pose_stamped_callback)
-tf_broadcaster = tf2_ros.TransformBroadcaster()
 
 map_frame_id = rospy.get_param('~map_frame_id')
 baselink_translation_frame_id = rospy.get_param('~baselink_translation_frame_id')
 
 rospy.loginfo('%s: Assuming map frame id to be %s', NODE_NAME, map_frame_id)
 rospy.loginfo('%s: Assuming baselink translation (no orientation) frame id to be %s', NODE_NAME, baselink_translation_frame_id)
+
+rospy.Subscriber('base_link', PoseStamped, dji_pose_stamped_callback)
+tf_broadcaster = tf2_ros.TransformBroadcaster()
 
 rospy.spin()

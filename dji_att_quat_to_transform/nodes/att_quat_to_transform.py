@@ -45,14 +45,6 @@ def attitude_quaternion_callback(msg):
 
   """
 
-  if not estimated_baselink_frame_id:
-    rospy.logwarn('%s: ~estimated_baselink_frame_id id is not defined!', NODE_NAME)
-    return
-
-  if not baselink_translation_frame_id:
-    rospy.logwarn('%s: ~baselink_translation_frame_id is not defined!', NODE_NAME)
-    return
-
   time = msg.header.stamp
 
   quat = (msg.q1, -msg.q2, -msg.q3, msg.q0)
@@ -75,15 +67,16 @@ def attitude_quaternion_callback(msg):
   local_orient_pose_pub.publish(pose_stamped)
 
 rospy.init_node(NODE_NAME)
-rospy.Subscriber('attitude_quaternion', AttitudeQuaternion, attitude_quaternion_callback)
-local_orient_pose_pub = rospy.Publisher('local_orientation_pose', PoseStamped, queue_size = 1)
-local_orient_transform_pub = rospy.Publisher('local_orientation_transform', TransformStamped, queue_size = 1)
-tf_broadcaster = tf2_ros.TransformBroadcaster()
 
 estimated_baselink_frame_id   = rospy.get_param('~estimated_baselink_frame_id')
 baselink_translation_frame_id = rospy.get_param('~baselink_translation_frame_id')
 
 rospy.loginfo('%s: Assuming baselink translation (no orientation) frame id to be %s', NODE_NAME, baselink_translation_frame_id)
 rospy.loginfo('%s: Assuming estimated baselink frame id to be %s', NODE_NAME, estimated_baselink_frame_id)
+
+rospy.Subscriber('attitude_quaternion', AttitudeQuaternion, attitude_quaternion_callback)
+local_orient_pose_pub = rospy.Publisher('local_orientation_pose', PoseStamped, queue_size = 1)
+local_orient_transform_pub = rospy.Publisher('local_orientation_transform', TransformStamped, queue_size = 1)
+tf_broadcaster = tf2_ros.TransformBroadcaster()
 
 rospy.spin()
