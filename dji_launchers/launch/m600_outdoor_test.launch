@@ -32,11 +32,11 @@
   <!-- M100 Gimbal publisher -->
   <include file="$(find dji_gimbal)/launch/gimbal_m600.launch"/>
 
-  <node name="map_to_radar" pkg="tf" type="static_transform_publisher" respawn="true" output="screen" 
-    args="0 0 0 0.767945 0 0 /map /radar 50">
+  <node name="map_to_radar" pkg="tf2_ros" type="static_transform_publisher" respawn="true" output="screen" 
+    args="0 0 0 0.767945 0 0 /map /radar">
   </node>
       
-  <node name="radar_to_radar_top" pkg="tf" type="static_transform_publisher" respawn="true" output="screen" args="9.753 5.0962 1.3882 0 0 0 /radar /radar/top 100">
+  <node name="radar_to_radar_top" pkg="tf2_ros" type="static_transform_publisher" respawn="true" output="screen" args="9.753 5.0962 1.3882 0 0 0 /radar /radar/top">
   </node>
 
 </launch>
