@@ -1,7 +1,7 @@
 <launch>
 
   <!-- DJI SDK -->
-  <!--include file="$(find dji_sdk)/launch/sdk_manifold.launch"/-->
+  <include file="$(find dji_sdk)/launch/sdk_manifold.launch"/>
 
   <!-- Pose estimation using Attitude Quaternion and RTK !-->
   <group ns="dji_sdk">
