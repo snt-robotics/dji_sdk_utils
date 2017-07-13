@@ -58,6 +58,6 @@ if subtract_north:
   rospy.Subscriber('attitude_quaternion', AttitudeQuaternion, attitude_quaternion_callback)
   rospy.loginfo('Gimbal Yaw will be corrected to base_link by subtracting the angle to North')
 
-gimbal_joint_states_pub = rospy.Publisher('gimbal_joint_states', JointState, queue_size = 1)
+gimbal_joint_states_pub = rospy.Publisher('gimbal_joint_states', JointState, queue_size = 100)
 
 rospy.spin()
