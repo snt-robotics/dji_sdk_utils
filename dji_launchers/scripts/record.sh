@@ -1,7 +1,7 @@
 function record_topics {
-  TOPICS=$1
-  BUFFER_SIZE=$2
-  DIRECTORY=$3
+  DIRECTORY=$1
+  TOPICS=$2 
+  BUFFER_SIZE=$3
 
   if [[ -z "${DIRECTORY}" ]]; then
     echo "You must specify a directory to which rosbag will be saved!"
@@ -19,7 +19,7 @@ function record_topics {
   fi
 
   echo "Creating directory ..."
-  mkdir -p "${DIRECTORY}"
+  mkdir -p $1
 
   if [ $? -eq 0 ]; then
     echo "Launching rosbag..."
