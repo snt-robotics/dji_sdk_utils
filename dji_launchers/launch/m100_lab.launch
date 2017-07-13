@@ -9,6 +9,6 @@
   <!-- M100 Gimbal publisher -->
   <include file="$(find dji_gimbal)/launch/gimbal_m100.launch"/>
 
-  <include file="$(find dji_launchers)/launch/map_to_wing_pos00.launch"/>
+  <!--include file="$(find dji_launchers)/launch/map_to_wing_pos00.launch"/-->
 
 </launch>

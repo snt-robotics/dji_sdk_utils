@@ -3,8 +3,9 @@
 Subscribes to Gimbal messages and republishes it as JointState message.
 So that we can transform to the Camera frame.
 
-Gimbal's yaw value is given with respect to North not drone's base_link.
-Therefore, we correct for it by subtracting the yaw to north value
+Gimbal's values are given with respect to an NED frame and not the UAV's base_link.
+Therefore, we correct for it by subtracting the current absolute position in NED frame
+from the gimbal angles
 """
 
 import rospy, math, tf_conversions
@@ -20,12 +21,12 @@ baselink_frame_id = None
 subtract_orientation = None
 
 current_abs_orientation = None
-convert_degrees_to_std_range = lambda x: ( x + 180) % 360 - 180
+convert_radians_to_std_range = lambda x: ( x + math.pi ) % (2 * math.pi) - math.pi
 
 def attitude_quaternion_callback(msg):
   q = (msg.q1, msg.q2, msg.q3, msg.q0)
   r, p, y = tf_conversions.transformations.euler_from_quaternion(q)
-  angles = map(convert_degrees_to_std_range, [y, r, p])
+  angles = map(convert_radians_to_std_range, [y, r, p])
   global current_abs_orientation
   current_abs_orientation = angles
 
@@ -39,10 +40,9 @@ def gimbal_callback(msg):
     rospy.logwarn('%s: Did NOT receive ~attitude_quaternion msg, so can\'t corrent to north', NODE_NAME)
     return
 
-  gimbal_positions = [msg.yaw, msg.roll, msg.pitch]
+  gimbal_positions = map(math.radians, [msg.yaw, msg.roll, msg.pitch])
   if subtract_orientation:
     gimbal_positions = map(sub, gimbal_positions, current_abs_orientation)
-  gimbal_positions = map(math.radians, gimbal_positions)
 
   joint_states = JointState()
   joint_states.header = h
