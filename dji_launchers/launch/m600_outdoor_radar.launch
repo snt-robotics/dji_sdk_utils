@@ -16,8 +16,8 @@
       <param name="baselink_translation_frame_id" type="str" value="/DJI/base_link_no_orientation" />
     </node>
 
-    <node name="enu_to_body" pkg="tf" type="static_transform_publisher" respawn="true" output="screen" 
-      args="0 0 0 1.57079632 0 0 /DJI/base_link_no_orientation /DJI/base_link_no_orientation_body 100">
+    <node name="enu_to_body" pkg="tf2_ros" type="static_transform_publisher" respawn="true" output="screen" 
+      args="0 0 0 1.57079632 0 0 /DJI/base_link_no_orientation /DJI/base_link_no_orientation_body">
     </node>
 
     <node pkg="hector_trajectory_server" type="hector_trajectory_server" name="hector_trajectory_server" output="screen">

@@ -28,8 +28,8 @@
     </node>
 
     <!-- Rotate OptiTrack frame to North -->
-    <node name="north_correction" pkg="tf" type="static_transform_publisher" respawn="true" output="screen" 
-      args="0 0 0 0.776 0 0 /DJI/base_link_no_orientation /DJI/base_link_no_orientation_north_corrected 100">
+    <node name="north_correction" pkg="tf2_ros" type="static_transform_publisher" respawn="true" output="screen" 
+      args="0 0 0 0.776 0 0 /DJI/base_link_no_orientation /DJI/base_link_no_orientation_north_corrected">
     </node>
 
   </group>
