@@ -30,8 +30,8 @@
   </group>
 
   <!-- M100 Gimbal publisher -->
-  <include file="$(find dji_gimbal)/launch/gimbal_m600.launch"/>
-
+  <include file="$(find dji_gimbal)/launch/gimbal_m600_radar.launch"/>
+  
   <!-- University of Luxembourg, outdoor around the radar flight -->
   <node name="map_to_radar" pkg="tf2_ros" type="static_transform_publisher" respawn="true" output="screen" 
     args="0 0 0 0.767945 0 0 /map /radar">

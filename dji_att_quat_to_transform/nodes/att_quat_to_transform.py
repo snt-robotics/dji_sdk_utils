@@ -59,12 +59,12 @@ def attitude_quaternion_callback(msg):
   t_stamped.transform.rotation = Quaternion(*quat)
   tf_broadcaster.sendTransform(t_stamped)
 
-  pose_stamped = PoseStamped()
-  pose_stamped.header = h
-  pose_stamped.pose = Pose()
-  pose_stamped.pose.position = Point(0, 0, 0)
-  pose_stamped.pose.orientation = Quaternion(*quat)
-  local_orient_pose_pub.publish(pose_stamped)
+  #pose_stamped = PoseStamped()
+  #pose_stamped.header = h
+  #pose_stamped.pose = Pose()
+  #pose_stamped.pose.position = Point(0, 0, 0)
+  #pose_stamped.pose.orientation = Quaternion(*quat)
+  #local_orient_pose_pub.publish(pose_stamped)
 
 rospy.init_node(NODE_NAME)
 
@@ -75,8 +75,8 @@ rospy.loginfo('%s: Assuming baselink translation (no orientation) frame id to be
 rospy.loginfo('%s: Assuming estimated baselink frame id to be %s', NODE_NAME, estimated_baselink_frame_id)
 
 rospy.Subscriber('attitude_quaternion', AttitudeQuaternion, attitude_quaternion_callback)
-local_orient_pose_pub = rospy.Publisher('local_orientation_pose', PoseStamped, queue_size = 1)
-local_orient_transform_pub = rospy.Publisher('local_orientation_transform', TransformStamped, queue_size = 1)
+#local_orient_pose_pub = rospy.Publisher('local_orientation_pose', PoseStamped, queue_size = 1)
+#local_orient_transform_pub = rospy.Publisher('local_orientation_transform', TransformStamped, queue_size = 1)
 tf_broadcaster = tf2_ros.TransformBroadcaster()
 
 rospy.spin()
