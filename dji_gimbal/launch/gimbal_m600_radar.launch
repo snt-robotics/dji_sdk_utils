@@ -2,8 +2,8 @@
 
   <group ns="dji_sdk">
     <node name="gimbal_joints_publisher" pkg="dji_gimbal" type="gimbal_joints_publisher.py" respawn="true" output="screen">
-      <param name="baselink_frame_id" type="str" value="/DJI/base_link" />
-      <param name="subtract_orientation" type="bool" value="true" />
+      <param name="baselink_frame_id" type="string" value="/DJI/base_link" />
+      <param name="gimbal_ref_frame" type="string" value="ned_without_yaw" />
     </node>
 
     <param name="gimbal/robot_description" textfile="$(find dji_gimbal)/urdf/ronin_mx_gimbal.urdf"/>

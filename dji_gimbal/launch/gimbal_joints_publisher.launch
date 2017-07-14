@@ -1,12 +1,12 @@
 <launch>
-  <arg name="subtract_orientation"/>
+  <arg name="gimbal_ref_frame"/>
   <arg name="baselink_frame_id"/>
   <arg name="gimbal_urdf_file"/>
 
   <group ns="dji_sdk">
     <node name="gimbal_joints_publisher" pkg="dji_gimbal" type="gimbal_joints_publisher.py" respawn="true" output="screen">
-      <param name="baselink_frame_id" type="str" value="$(arg baselink_frame_id)" />
-      <param name="subtract_orientation" type="bool" value="$(arg subtract_orientation)" />
+      <param name="baselink_frame_id" type="string" value="$(arg baselink_frame_id)" />
+      <param name="gimbal_ref_frame" type="string" value="$(arg gimbal_ref_frame)" />
     </node>
     
     <param name="gimbal/robot_description" textfile="$(arg gimbal_urdf_file)"/>

@@ -8,7 +8,7 @@ Therefore, we correct for it by subtracting the current absolute position in NED
 from the gimbal angles
 """
 
-import rospy, math, tf_conversions
+import rospy, math, tf_conversions, sys
 from operator import sub
 from dji_sdk.msg import Gimbal, AttitudeQuaternion
 from std_msgs.msg import Header
@@ -18,7 +18,7 @@ NODE_NAME = 'gimbal_joints_publisher'
 JOINTS = ['yaw', 'roll', 'pitch']
 
 baselink_frame_id = None
-subtract_orientation = None
+gimbal_ref_frame = None
 
 current_abs_orientation = None
 convert_radians_to_std_range = lambda x: ( x + math.pi ) % (2 * math.pi) - math.pi
@@ -36,13 +36,16 @@ def gimbal_callback(msg):
   h.stamp = msg.header.stamp
   h.frame_id = baselink_frame_id
 
-  if not current_abs_orientation and subtract_orientation:
+  if not current_abs_orientation:
     rospy.logwarn('%s: Did NOT receive ~attitude_quaternion msg, so can\'t corrent to north', NODE_NAME)
     return
 
   gimbal_positions = map(math.radians, [msg.yaw, msg.roll, msg.pitch])
-  if subtract_orientation:
+  if gimbal_ref_frame == 'ned':
     gimbal_positions = map(sub, gimbal_positions, current_abs_orientation)
+  elif gimbal_ref_frame == 'ned_without_yaw':
+    r, p = map(sub, gimbal_positions[1:], current_abs_orientation[1:])
+    gimbal_positions = [gimbal_positions[0], r, p]
 
   joint_states = JointState()
   joint_states.header = h
@@ -55,14 +58,19 @@ def gimbal_callback(msg):
 rospy.init_node(NODE_NAME)
 
 baselink_frame_id = rospy.get_param('~baselink_frame_id')
-subtract_orientation = rospy.get_param('~subtract_orientation')
+gimbal_ref_frame = rospy.get_param('~gimbal_ref_frame')
 
 rospy.Subscriber('gimbal', Gimbal, gimbal_callback)
 
-if subtract_orientation: 
-  rospy.Subscriber('attitude_quaternion', AttitudeQuaternion, attitude_quaternion_callback)
+if gimbal_ref_frame == 'ned': 
   rospy.loginfo('Gimbal Yaw will be corrected to base_link by subtracting the angle to North')
+elif gimbal_ref_frame == 'ned_without_yaw':
+  rospy.loginfo("Gimbal's angles will be corrected - excluding the yaw angle (Ronin-MX")
+else:
+  rospy.logfatal("Unrecognized param value for ~gimbal_ref_frame")
+  sys.exit()
 
+rospy.Subscriber('attitude_quaternion', AttitudeQuaternion, attitude_quaternion_callback)
 gimbal_joint_states_pub = rospy.Publisher('gimbal_joint_states', JointState, queue_size = 1)
 
 rospy.spin()
