@@ -1,6 +1,6 @@
 <launch>  
   <node name="map_to_wing" pkg="tf2_ros" type="static_transform_publisher" respawn="true" output="screen" 
-    args="-1.31099367142 1.57817947865 1.55743134022 0.0109571017919 0.000224510997894 0.443163702554 0.896373707922 /map /wing">
+    args="0.616, 2.980, 1.623 -0.010, 0.014, 0.870, -0.493 /map /wing/base_link">
   </node>
 </launch>
 
