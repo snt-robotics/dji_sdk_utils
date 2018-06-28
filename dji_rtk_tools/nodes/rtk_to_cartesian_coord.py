@@ -2,7 +2,6 @@
 import rospy, math
 import tf, tf2_ros
 import nvector as nv
-from dji_sdk.msg import A3RTK
 from sensor_msgs.msg import NavSatFix
 from std_msgs.msg import Header
 from std_srvs.srv import Trigger, TriggerResponse
@@ -11,9 +10,10 @@ from geometry_msgs.msg import (
   Transform,
   PoseStamped,
   Pose,
-  Quaternion, 
+  Quaternion,
   Vector3,
-  Point
+  Point,
+  PointStamped
 )
 
 NODE_NAME = 'rtk_to_cartesian_coord'
@@ -24,16 +24,6 @@ last_position_timestamp = None
 
 map_frame_id = None
 baselink_translation_frame_id = None
-
-def warn_every(steps = 50):  
-  class nonlocal:
-    counter = 0
-
-  def logwarn(msg):
-    if nonlocal.counter % steps == 0:
-      rospy.logwarn('%s: %s', NODE_NAME, msg)
-    nonlocal.counter += 1
-  return logwarn
 
 def geopoint_to_msg(gp):
   h = Header()
@@ -51,16 +41,17 @@ def geopoint_to_list(gp, degrees=True):
   pos = [gp.latitude, gp.longitude, gp.z]
   return pos if not degrees else map(math.degrees, pos[:2]) + [pos[2]]
 
-def a3_rtk_callback(msg):
 
-  lat = msg.latitude_RTK
-  lon = msg.longitude_RTK
-  alt = msg.height_above_sea_RTK
+def rtk_callback(msg):
+
+  lat = msg.latitude
+  lon = msg.longitude
+  alt = msg.altitude
 
   if 0.0 in [lat, lon, alt]:
-    warn_invalid_position('Received a msg with lat, lon, alt: 0, 0, 0')
+    rospy.logwarn_throttle(2, 'Received a msg with lat, lon, alt: 0, 0, 0')
     return
-    
+
   wgs84 = nv.FrameE(name='WGS84')
 
   global current_position, last_position_timestamp
@@ -68,8 +59,11 @@ def a3_rtk_callback(msg):
   last_position_timestamp = rospy.Time.now()
 
   if initial_position == None:
-    warn_no_initial_position('Initial position is not set!')
+    rospy.logwarn_throttle(2, 'Initial position is not set!')
     return
+
+  calc_earth_sphere(current_position, initial_position, last_position_timestamp)
+
 
   '''get transformation from intial to current in Earth coordinate frame'''
   transform_in_E = nv.diff_positions(initial_position, current_position)
@@ -81,20 +75,20 @@ def a3_rtk_callback(msg):
 
   '''get transformation in ENU frame (ROS compatible)'''
   transform_in_ENU = [
-    transform_in_NED[1], 
-    transform_in_NED[0], 
+    transform_in_NED[1],
+    transform_in_NED[0],
     transform_in_NED[2]
   ]
 
   h = Header()
-  h.stamp = rospy.Time.now()
+  h.stamp = last_position_timestamp
   h.frame_id = map_frame_id
 
-  p_stamped = PoseStamped()
+  p_stamped = PointStamped()
   p_stamped.header = h
-  p_stamped.pose = Pose()
-  p_stamped.pose.position = Point(*transform_in_ENU)
-  p_stamped.pose.orientation = Quaternion(0, 0, 0, 1)
+  p_stamped.point.x = transform_in_ENU[0]
+  p_stamped.point.y = transform_in_ENU[1]
+  p_stamped.point.z = transform_in_ENU[2]
   global_position_pub.publish(p_stamped)
 
   t_stamped = TransformStamped()
@@ -107,8 +101,8 @@ def a3_rtk_callback(msg):
 
 def set_current_position_as_initial(request):
   if current_position == None:
-    return TriggerResponse(False, 'Did not receive any A3_RTK message so far!')
-  
+    return TriggerResponse(False, 'Did not receive any RTK message so far!')
+
   last_message_dur = (rospy.Time.now() - last_position_timestamp).to_sec()
   if last_message_dur > 2:
     string_response = 'Last message was received {:.3f}s ago'.format(last_message_dur)
@@ -117,13 +111,10 @@ def set_current_position_as_initial(request):
 
   global initial_position
   initial_position = current_position
-  position_degrees = geopoint_to_list(initial_position, degrees=True)
-  string_response = 'Initial position set to: {}, {}, {}'.format(*position_degrees)
+  string_response = 'Initial position set to: {}, {}, {}'\
+    .format(*geopoint_to_list(initial_position, degrees=True))
   rospy.loginfo('%s: %s', NODE_NAME, string_response)
   return TriggerResponse(True, string_response)
-
-warn_invalid_position = warn_every(50)
-warn_no_initial_position = warn_every(50)
 
 rospy.init_node(NODE_NAME)
 
@@ -136,14 +127,20 @@ rospy.loginfo('%s: Assuming baselink translation (no orientation) frame id to be
 
 tf_broadcaster = tf2_ros.TransformBroadcaster()
 
-rospy.Subscriber('A3_RTK', A3RTK, a3_rtk_callback)
+rospy.Subscriber('dji_sdk/rtk_position', NavSatFix, rtk_callback)
+
 rospy.Service('set_current_position_as_initial', Trigger, set_current_position_as_initial)
-global_position_pub  = rospy.Publisher('global_rtk', PoseStamped, queue_size = 1)
-initial_position_pub = rospy.Publisher('initial_position', NavSatFix, queue_size = 1)
+global_position_pub  = rospy.Publisher('rtk_enu', PointStamped, queue_size = 1)
+initial_position_pub = rospy.Publisher('rtk_initial_position', NavSatFix, queue_size = 1)
 
 r = rospy.Rate(1)
 while not rospy.is_shutdown():
   if initial_position:
     msg = geopoint_to_msg(initial_position)
     initial_position_pub.publish(msg)
-  r.sleep()
+  try:
+    r.sleep()
+  except rospy.exceptions.ROSTimeMovedBackwardsException:
+    pass
+  except rospy.exceptions.ROSInterruptException:
+    break

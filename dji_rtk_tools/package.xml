@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<package>
+<package format="2">
   <name>dji_rtk_tools</name>
   <version>0.0.1</version>
   <description>The dji_rtk_tools package </description>
@@ -11,30 +10,19 @@
 
   <!-- TODO - check dependencies -->
   <buildtool_depend>catkin</buildtool_depend>
-  
-  <build_depend>rospy</build_depend>
-  <build_depend>dji_sdk</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>std_srvs</build_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>rospy</build_depend>
-  <build_depend>tf2_ros</build_depend>
-  <build_depend>tf</build_depend>
-  
-  <run_depend>rospy</run_depend>
-  <run_depend>dji_sdk</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>std_srvs</run_depend>
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>tf2_ros</run_depend>
-  <run_depend>tf</run_depend>
 
-  <!-- external dependencies -->
-  <run_depend>python-simplekml</run_depend>
-  <run_depend>python-nvector</run_depend>
-  <run_depend>pip-tqdm</run_depend>
+  <depend>dji_sdk</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>rospy</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf</depend>
+
+  <!-- exec dependencies -->
+  <exec_depend>python-simplekml</exec_depend>
+  <exec_depend>python-nvector</exec_depend>
+  <exec_depend>pip-tqdm</exec_depend>
 
 </package>
