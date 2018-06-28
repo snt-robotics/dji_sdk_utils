@@ -18,59 +18,69 @@ from geometry_msgs.msg import (
 
 NODE_NAME = 'rtk_to_cartesian_coord'
 
-current_position = None
-initial_position = None
-last_position_timestamp = None
+class StampedGeoPoint(object):
+
+  def __init__(self, geopoint, stamp):
+    self.geopoint = geopoint
+    self.stamp = stamp
+
+  def __format__(self, fmt_spec):
+    gp = [self.geopoint.latitude, self.geopoint.longitude, self.geopoint.z]
+    gp = map(math.degrees, gp[:2]) + [gp[2]]
+    return ("<StampedGeoPoint \n\tstamp: {} \n\tlat: {}"
+           "\n\tlon: {}\n\talt: {}\n> ".format(self.stamp, *gp))
+
+  def to_msg(self):
+    h = Header()
+    h.stamp = self.stamp
+    h.frame_id = map_frame_id
+
+    msg = NavSatFix()
+    msg.header = h
+    msg.latitude = math.degrees(self.geopoint.latitude)
+    msg.longitude = math.degrees(self.geopoint.longitude)
+    msg.altitude = self.geopoint.z
+    return msg
+
+current_stamped_geopoint = None
+reference_stamped_geopoint = None
 
 map_frame_id = None
 baselink_translation_frame_id = None
 
-def geopoint_to_msg(gp):
-  h = Header()
-  h.stamp = rospy.Time.now()
-  h.frame_id = map_frame_id
-
-  msg = NavSatFix()
-  msg.header = h
-  msg.latitude = gp.latitude
-  msg.longitude = gp.longitude
-  msg.altitude = gp.z
-  return msg
-
-def geopoint_to_list(gp, degrees=True):
-  pos = [gp.latitude, gp.longitude, gp.z]
-  return pos if not degrees else map(math.degrees, pos[:2]) + [pos[2]]
-
-
 def rtk_callback(msg):
-
   lat = msg.latitude
   lon = msg.longitude
   alt = msg.altitude
 
   if 0.0 in [lat, lon, alt]:
-    rospy.logwarn_throttle(2, 'Received a msg with lat, lon, alt: 0, 0, 0')
+    rospy.logwarn_throttle(2, ('{}: Received a msg with lat, lon, alt'
+                              ': 0, 0, 0'.format(NODE_NAME)))
     return
 
   wgs84 = nv.FrameE(name='WGS84')
 
-  global current_position, last_position_timestamp
-  current_position = wgs84.GeoPoint(latitude=lat, longitude=lon, z=alt, degrees=True)
-  last_position_timestamp = rospy.Time.now()
+  current_geopoint = wgs84.GeoPoint(
+    latitude=lat,
+    longitude=lon,
+    z=alt,
+    degrees=True)
 
-  if initial_position == None:
-    rospy.logwarn_throttle(2, 'Initial position is not set!')
+  global current_stamped_geopoint
+  current_stamped_geopoint = StampedGeoPoint(current_geopoint, msg.header.stamp)
+
+  if reference_stamped_geopoint == None:
+    rospy.logwarn_throttle(2, '{}: RTK Reference is not set!'.format(NODE_NAME))
     return
 
-  calc_earth_sphere(current_position, initial_position, last_position_timestamp)
-
-
   '''get transformation from intial to current in Earth coordinate frame'''
-  transform_in_E = nv.diff_positions(initial_position, current_position)
+  transform_in_E = nv.diff_positions(
+    reference_stamped_geopoint.geopoint,
+    current_stamped_geopoint.geopoint)
 
   '''get transformation in NED frame'''
-  intial_frame = nv.FrameN(initial_position)
-  transform_in_NED = transform_in_E.change_frame(intial_frame)
+  reference_frame = nv.FrameN(reference_stamped_geopoint.geopoint)
+  transform_in_NED = transform_in_E.change_frame(reference_frame)
   transform_in_NED = transform_in_NED.pvector.ravel()
 
   '''get transformation in ENU frame (ROS compatible)'''
@@ -81,7 +91,7 @@ def rtk_callback(msg):
   ]
 
   h = Header()
-  h.stamp = last_position_timestamp
+  h.stamp = current_stamped_geopoint.stamp
   h.frame_id = map_frame_id
 
   p_stamped = PointStamped()
@@ -89,7 +99,7 @@ def rtk_callback(msg):
   p_stamped.point.x = transform_in_ENU[0]
   p_stamped.point.y = transform_in_ENU[1]
   p_stamped.point.z = transform_in_ENU[2]
-  global_position_pub.publish(p_stamped)
+  local_rtk_enu_position_pub.publish(p_stamped)
 
   t_stamped = TransformStamped()
   t_stamped.header = h
@@ -99,45 +109,58 @@ def rtk_callback(msg):
   t_stamped.transform.rotation = Quaternion(0, 0, 0, 1)
   tf_broadcaster.sendTransform(t_stamped)
 
-def set_current_position_as_initial(request):
-  if current_position == None:
+def set_geo_reference(request):
+  if current_stamped_geopoint == None:
     return TriggerResponse(False, 'Did not receive any RTK message so far!')
 
-  last_message_dur = (rospy.Time.now() - last_position_timestamp).to_sec()
-  if last_message_dur > 2:
-    string_response = 'Last message was received {:.3f}s ago'.format(last_message_dur)
-    rospy.logwarn('%s: %s', NODE_NAME, string_response)
-    return TriggerResponse(False, string_response)
+  # duration = (rospy.Time.now() - current_stamped_geopoint.stamp).to_sec()
+  # if duration > 1:
+  #   string_response = 'Last message was received {:.3f}s ago'.format(duration)
+  #   rospy.logwarn('{}: {}'.format(NODE_NAME, string_response))
+  #   return TriggerResponse(False, string_response)
 
-  global initial_position
-  initial_position = current_position
-  string_response = 'Initial position set to: {}, {}, {}'\
-    .format(*geopoint_to_list(initial_position, degrees=True))
-  rospy.loginfo('%s: %s', NODE_NAME, string_response)
+  global reference_stamped_geopoint
+  reference_stamped_geopoint = current_stamped_geopoint
+  string_response = 'Reference was set to: {}'.format(reference_stamped_geopoint)
+  rospy.loginfo('{}: {}'.format(NODE_NAME, string_response))
   return TriggerResponse(True, string_response)
 
 rospy.init_node(NODE_NAME)
 
+##
+## TODO(asiron)
+### fix autoset_geo_reference
+### fix SDK to give correct timestamps with RTK data and uncomment the check above
+ 
+
+autoset_geo_reference = rospy.get_param('~autoset_geo_reference')
+
 map_frame_id = rospy.get_param('~map_frame_id')
 baselink_translation_frame_id = rospy.get_param('~baselink_translation_frame_id')
 
-rospy.loginfo('%s: Assuming map frame id to be: %s', NODE_NAME, map_frame_id)
-rospy.loginfo('%s: Assuming baselink translation (no orientation) frame id to be: %s', \
-  NODE_NAME, baselink_translation_frame_id)
+rospy.loginfo('{}: Assuming map frame id to be: {}'.format(NODE_NAME, map_frame_id))
+rospy.loginfo(('{}: Assuming baselink translation (no orientation) frame id'
+               'to be: {}'.format(NODE_NAME, baselink_translation_frame_id)))
 
 tf_broadcaster = tf2_ros.TransformBroadcaster()
 
-rospy.Subscriber('dji_sdk/rtk_position', NavSatFix, rtk_callback)
-
-rospy.Service('set_current_position_as_initial', Trigger, set_current_position_as_initial)
-global_position_pub  = rospy.Publisher('rtk_enu', PointStamped, queue_size = 1)
-initial_position_pub = rospy.Publisher('rtk_initial_position', NavSatFix, queue_size = 1)
+rospy.Service('set_geo_reference', Trigger, set_geo_reference)
+rospy.Subscriber('global_rtk_position', NavSatFix, rtk_callback)
+local_rtk_enu_position_pub  = rospy.Publisher('local_rtk_enu_position',
+                                              PointStamped,
+                                              queue_size = 1)
+reference_geopoint_pub = rospy.Publisher('rtk_reference_geopoint',
+                                         NavSatFix,
+                                         queue_size = 1,
+                                         latch = True)
 
 r = rospy.Rate(1)
 while not rospy.is_shutdown():
-  if initial_position:
-    msg = geopoint_to_msg(initial_position)
-    initial_position_pub.publish(msg)
+  if reference_stamped_geopoint:
+    reference_geopoint_pub.publish(reference_stamped_geopoint.to_msg())
+  else:
+    rospy.logwarn_throttle(1, ('{}: No RTK message received and no reference '
+                              'was set!'.format(NODE_NAME)))
   try:
     r.sleep()
   except rospy.exceptions.ROSTimeMovedBackwardsException:

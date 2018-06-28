@@ -1,13 +1,11 @@
 <launch>
-    <node name="rtk_to_cartesian_coord" pkg="dji_rtk_tools" type="rtk_to_cartesian_coord.py" respawn="true" output="screen">
-        <param name="map_frame_id" type="str" value="/local" />
-        <param name="baselink_translation_frame_id" type="str" value="/m600/base_link_no_orientation" />
-    </node>
-<!--
-    <node pkg="hector_trajectory_server" type="hector_trajectory_server" name="hector_trajectory_server" output="screen">
-      <param name="target_frame_name" type="string" value="/map" />
-      <param name="source_frame_name" type="string" value="/DJI/base_link" />
-      <param name="trajectory_update_rate" type="double" value="30" />
-      <param name="trajectory_publish_rate" type="double" value="20" />
-    </node> -->
+  <arg name="map_frame_id" default="/map"/>
+  <arg name="baselink_translation_frame_id" default="/m600/base_link_no_orientation"/>
+  <arg name="autoset_geo_reference" default="true"/>
+
+  <node name="rtk_to_cartesian_coord" pkg="dji_rtk_tools" type="rtk_to_cartesian_coord.py" respawn="true" output="screen">
+    <param name="autoset_geo_reference" type="bool" value="$(arg autoset_geo_reference)" />
+    <param name="map_frame_id" type="str" value="$(arg map_frame_id)" />
+    <param name="baselink_translation_frame_id" type="str" value="$(arg baselink_translation_frame_id)" />
+  </node>
 </launch>
