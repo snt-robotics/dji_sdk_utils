@@ -1,8 +1,0 @@
-pip-simplekml:
-  ubuntu:
-    pip:
-      packages: [simplekml]
-pip-nvector:
-   ubuntu:
-    pip:
-      packages: [nvector]
