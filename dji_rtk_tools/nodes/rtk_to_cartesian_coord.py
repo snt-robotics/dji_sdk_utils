@@ -104,13 +104,14 @@ def rtk_callback(msg):
   p_stamped.point.z = transform_in_ENU[2]
   local_rtk_enu_position_pub.publish(p_stamped)
 
-  t_stamped = TransformStamped()
-  t_stamped.header = h
-  t_stamped.child_frame_id = baselink_translation_frame_id
-  t_stamped.transform = Transform()
-  t_stamped.transform.translation = Vector3(*transform_in_ENU)
-  t_stamped.transform.rotation = Quaternion(0, 0, 0, 1)
-  tf_broadcaster.sendTransform(t_stamped)
+  if(publish_tf):
+    t_stamped = TransformStamped()
+    t_stamped.header = h
+    t_stamped.child_frame_id = baselink_translation_frame_id
+    t_stamped.transform = Transform()
+    t_stamped.transform.translation = Vector3(*transform_in_ENU)
+    t_stamped.transform.rotation = Quaternion(0, 0, 0, 1)
+    tf_broadcaster.sendTransform(t_stamped)
 
 def set_geo_reference(request):
   if current_stamped_geopoint == None:
@@ -137,6 +138,7 @@ rospy.init_node(NODE_NAME)
  
 
 autoset_geo_reference = rospy.get_param('~autoset_geo_reference')
+publish_tf = rospy.get_param('~publish_tf')
 
 map_frame_id = rospy.get_param('~map_frame_id')
 baselink_translation_frame_id = rospy.get_param('~baselink_translation_frame_id')
@@ -145,7 +147,8 @@ rospy.loginfo('{}: Assuming map frame id to be: {}'.format(NODE_NAME, map_frame_
 rospy.loginfo(('{}: Assuming baselink translation (no orientation) frame id'
                'to be: {}'.format(NODE_NAME, baselink_translation_frame_id)))
 
-tf_broadcaster = tf2_ros.TransformBroadcaster()
+if(publish_tf):
+  tf_broadcaster = tf2_ros.TransformBroadcaster()
 
 rospy.Service('set_geo_reference', Trigger, set_geo_reference)
 rospy.Subscriber('global_rtk_position', NavSatFix, rtk_callback)
