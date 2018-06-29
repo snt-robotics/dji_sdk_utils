@@ -1,5 +1,6 @@
+<!-- -->
 <launch>
-  <arg name="map_frame_id" default="/map"/>
+  <arg name="map_frame_id" default="/ground_ENU"/>
   <arg name="baselink_translation_frame_id" default="/m600/base_link_no_orientation"/>
   <arg name="autoset_geo_reference" default="true"/>
 
@@ -7,5 +8,7 @@
     <param name="autoset_geo_reference" type="bool" value="$(arg autoset_geo_reference)" />
     <param name="map_frame_id" type="str" value="$(arg map_frame_id)" />
     <param name="baselink_translation_frame_id" type="str" value="$(arg baselink_translation_frame_id)" />
+    <remap from="global_rtk_position" to="dji_sdk/rtk_position"/>
+    <remap from="local_rtk_enu_position" to="dji_sdk/rtk_position_earth"/>
   </node>
 </launch>

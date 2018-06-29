@@ -91,7 +91,10 @@ def rtk_callback(msg):
   ]
 
   h = Header()
-  h.stamp = current_stamped_geopoint.stamp
+  if ( current_stamped_geopoint.stamp == rospy.Time(0) ):
+    h.stamp = rospy.get_rostime()
+  else:
+    h.stamp = current_stamped_geopoint.stamp
   h.frame_id = map_frame_id
 
   p_stamped = PointStamped()
