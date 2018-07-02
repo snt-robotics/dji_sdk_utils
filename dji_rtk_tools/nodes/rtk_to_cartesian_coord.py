@@ -69,6 +69,12 @@ def rtk_callback(msg):
   global current_stamped_geopoint
   current_stamped_geopoint = StampedGeoPoint(current_geopoint, msg.header.stamp)
 
+  global reference_stamped_geopoint
+  if(reference_stamped_geopoint == None and autoset_geo_reference):
+    reference_stamped_geopoint = current_stamped_geopoint
+    string_response = 'Reference was set to: {}'.format(reference_stamped_geopoint)
+    rospy.loginfo('{}: {}'.format(NODE_NAME, string_response))
+
   if reference_stamped_geopoint == None:
     rospy.logwarn_throttle(2, '{}: RTK Reference is not set!'.format(NODE_NAME))
     return
