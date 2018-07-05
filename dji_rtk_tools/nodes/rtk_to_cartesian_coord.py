@@ -26,9 +26,13 @@ WGS84 = nv.FrameE(name='WGS84')
 
 """ TODO(asiron) convert into parameter """
 HISTORY_LENGTH = 30
-EXPECTED_FREQ = 10.0
+EXPECTED_FREQ = 5.0
 LAST_MEASUREMENT_DELAY_THRESHOLD = 0.5
 MEASUREMENT_UPDATE_FREQUENCY_TOLERANCE = 1.0
+
+LAT_VAR_TH = 1e-10
+LON_VAR_TH = 1e-10
+ALT_VAR_TH = 1e-3
 
 def logged_service_callback(f, throttled = True):
 
@@ -61,7 +65,6 @@ class StampedGeoPoint(object):
 
   def __format__(self, fmt_spec):
     gp = self.to_vec()
-    gp = map(math.degrees, gp[:2]) + [gp[2]]
     return ("<StampedGeoPoint \n\tstamp: {} \n\tlat: {}"
            "\n\tlon: {}\n\talt: {}\n> ".format(self.stamp, *gp))
 
@@ -70,6 +73,11 @@ class StampedGeoPoint(object):
       return (self.geopoint.latitude == other.geopoint.latitude) \
         and (self.geopoint.longitude == other.geopoint.longitude) \
         and (self.geopoint.z == other.geopoint.z)
+    return False
+
+  def __ne__(self, other):
+    if isinstance(other, StampedGeoPoint):
+      return not (self == other)
     return False
 
   def to_msg(self):
@@ -84,8 +92,9 @@ class StampedGeoPoint(object):
     msg.altitude = self.geopoint.z
     return msg
 
-  def to_vec(self):
-    return [self.geopoint.latitude, self.geopoint.longitude, self.geopoint.z]
+  def to_vec(self, degrees=True):
+    vec = [self.geopoint.latitude, self.geopoint.longitude, self.geopoint.z]
+    return map(math.degrees, vec[:2]) + [vec[2]] if degrees else vec
 
 measurement_history = collections.deque(maxlen=HISTORY_LENGTH)
 
@@ -121,10 +130,10 @@ def rtk_callback(msg):
     else:
       return
 
-  if reference_stamped_geopoint == None and autoset_geo_reference:
+  if reference_stamped_geopoint is None and autoset_geo_reference:
     set_geo_reference()
 
-  if reference_stamped_geopoint == None:
+  if reference_stamped_geopoint is None:
     rospy.logwarn_throttle(2, '{}: RTK Reference is not set!'.format(NODE_NAME))
     return
 
@@ -192,15 +201,25 @@ def set_geo_reference(request=None):
     return TriggerResponse(False, string_response)
 
   measurements = np.array(map(lambda m: m.to_vec(), measurement_history))
-  measurement_covariance = np.cov(measurements, rowvar=True)
+  measurement_covariance = np.cov(measurements, rowvar=False).diagonal()
   measurement_mean = np.mean(measurements, axis=0)
+
+  lat_var, lon_var, alt_var = measurement_covariance
+  if (lat_var > LAT_VAR_TH) or (lon_var > LON_VAR_TH) or (alt_var > ALT_VAR_TH):
+    string_response = ('Calculated diagnoal covariance matrix '
+                       '(lat, lon, alt) was {} and the limits '
+                       'are {} {} {}'.format(measurement_covariance,
+                                             LAT_VAR_TH,
+                                             LON_VAR_TH,
+                                             ALT_VAR_TH))
+    return TriggerResponse(False, string_response)
 
   lat, lon, alt = measurement_mean
   reference_geopoint = WGS84.GeoPoint(
     latitude=lat,
     longitude=lon,
     z=alt,
-    degrees=False)
+    degrees=True)
 
   global reference_stamped_geopoint
   reference_stamped_geopoint = StampedGeoPoint(reference_geopoint,
