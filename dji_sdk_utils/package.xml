@@ -11,7 +11,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   
-  <run_depend>att_quat_to_transform</run_depend>
+  <!--<run_depend>dji_att_quat_to_transform</run_depend>-->
 
   <export>
      <metapackage/>
