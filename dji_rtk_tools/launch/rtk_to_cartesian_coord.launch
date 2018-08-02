@@ -6,6 +6,7 @@
   <arg name="publish_tf" default="false"/>
   <arg name="global_rtk_position_topic" default="global_rtk_position"/>
   <arg name="local_rtk_enu_position_topic" default="local_rtk_enu_position"/>
+  <arg name="rtk_reference_geopoint_topic" default="rtk_reference_geopoint"/>
 
   <node name="rtk_to_cartesian_coord" pkg="dji_rtk_tools" type="rtk_to_cartesian_coord.py" respawn="true" output="screen">
     <param name="autoset_geo_reference" type="bool" value="$(arg autoset_geo_reference)" />
@@ -14,5 +15,6 @@
     <param name="baselink_translation_frame_id" type="str" value="$(arg baselink_translation_frame_id)" />
     <remap from="global_rtk_position" to="$(arg global_rtk_position_topic)"/>
     <remap from="local_rtk_enu_position" to="$(arg local_rtk_enu_position_topic)"/>
+    <remap from="rtk_reference_geopoint" to="$(arg rtk_reference_geopoint_topic)"/>
   </node>
 </launch>
