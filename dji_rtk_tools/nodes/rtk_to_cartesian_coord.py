@@ -224,6 +224,7 @@ def set_geo_reference(request=None):
   global reference_stamped_geopoint
   reference_stamped_geopoint = StampedGeoPoint(reference_geopoint,
                                              last_measurement.stamp)
+  reference_geopoint_pub.publish(reference_stamped_geopoint.to_msg())
   string_response = 'Reference was set to: {}'.format(reference_stamped_geopoint)
   return TriggerResponse(True, string_response)
 
@@ -256,13 +257,11 @@ reference_geopoint_pub = rospy.Publisher('rtk_reference_geopoint',
                                          queue_size = 1,
                                          latch = True)
 
-r = rospy.Rate(1)
+r = rospy.Rate(0.1)
 while not rospy.is_shutdown():
-  if reference_stamped_geopoint:
-    reference_geopoint_pub.publish(reference_stamped_geopoint.to_msg())
-  else:
-    rospy.logwarn_throttle(10, ('{}: No RTK message received and no reference '
-                              'was set!'.format(NODE_NAME)))
+  if reference_stamped_geopoint is None:
+    rospy.logwarn(('{}: No RTK message received and no reference '
+                   'was set!'.format(NODE_NAME)))
   try:
     r.sleep()
   except rospy.exceptions.ROSTimeMovedBackwardsException:
