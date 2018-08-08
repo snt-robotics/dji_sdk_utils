@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>dji_sdk_utils</name>
   <version>0.0.1</version>
   <description>The dji_sdk_utils package contains various tools for improving experience with the DJI drones</description>
@@ -11,7 +11,10 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   
-  <!--<run_depend>dji_att_quat_to_transform</run_depend>-->
+  <exec_depend>dji_gimbal</exec_depend>
+  <exec_depend>dji_launchers</exec_depend>
+  <exec_depend>dji_rtk_tools</exec_depend>
+  <exec_depend>dji_twist2joy</exec_depend>
 
   <export>
      <metapackage/>
