@@ -4,6 +4,7 @@ project(dji_gimbal)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
+  geometry_msgs
   std_msgs
   dji_sdk
 )

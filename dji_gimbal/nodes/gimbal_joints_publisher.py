@@ -3,6 +3,8 @@
 Subscribes to Gimbal messages and republishes it as JointState message.
 So that we can transform to the Camera frame.
 
+!!!!!!
+!!!!!!
 Gimbal's values are given with respect to an NED frame and not the UAV's base_link.
 Therefore, we correct for it by subtracting the current absolute position in NED frame
 from the gimbal angles
@@ -10,7 +12,8 @@ from the gimbal angles
 
 import rospy, math, tf_conversions, sys
 from operator import sub
-from dji_sdk.msg import Gimbal, AttitudeQuaternion
+
+from geometry_msgs.msg import Vector3Stamped, QuaternionStamped
 from std_msgs.msg import Header
 from sensor_msgs.msg import JointState
 
@@ -62,7 +65,7 @@ gimbal_ref_frame = rospy.get_param('~gimbal_ref_frame')
 
 rospy.Subscriber('gimbal', Gimbal, gimbal_callback)
 
-if gimbal_ref_frame == 'ned': 
+if gimbal_ref_frame == 'ned':
   rospy.loginfo('Gimbal Yaw will be corrected to base_link by subtracting the angle to North')
 elif gimbal_ref_frame == 'ned_without_yaw':
   rospy.loginfo("Gimbal's angles will be corrected - excluding the yaw angle (Ronin-MX")

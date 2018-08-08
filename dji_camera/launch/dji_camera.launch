@@ -1,0 +1,21 @@
+<launch>
+  <arg name="camera_action_service_name" default="camera_action"/>
+  <arg name="waypoint_reached_topic_name" default="waypoint_reached"/>
+
+  <arg name="source_frame_id" default="airplane_base_link"/>
+  <arg name="target_frame_id" default="gimbal_base_link"/>
+
+  <arg name="output_filename" default="/tmp/test.out"/>
+
+  <node name="dji_camera" pkg="dji_camera" type="dji_camera.py" respawn="true" output="screen">
+
+    <remap from="camera_action" to="$(arg camera_action_service_name)" />
+    <remap from="waypoint_reached" to="$(arg waypoint_reached_topic_name)" />
+
+    <param name="source_frame_id" type="str" value="$(arg source_frame_id)"/>
+    <param name="target_frame_id" type="str" value="$(arg target_frame_id)"/>
+
+    <param name="output_filename" type="str" value="$(arg output_filename)"/>
+
+  </node>
+</launch>
