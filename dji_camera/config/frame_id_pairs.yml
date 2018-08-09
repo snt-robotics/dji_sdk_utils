@@ -1,0 +1,12 @@
+-
+  source_frame_id: "airplane_base_link"
+  target_frame_id: "robot_base_link"
+-
+  source_frame_id: "world"
+  target_frame_id: "robot_base_link"
+-
+  source_frame_id: "airplane_base_link"
+  target_frame_id: "gimbal_base_link"
+-
+  source_frame_id: "world"
+  target_frame_id: "gimbal_base_link"
