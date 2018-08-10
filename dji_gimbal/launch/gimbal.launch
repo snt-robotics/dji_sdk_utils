@@ -1,11 +1,11 @@
 <launch>
-  <arg name="gimbal_urdf_file" default="$(find dji_gimbal)/urdf/zenmuse_x5r_gimbal.urdf"/>
+  <arg name="gimbal_urdf_file" default="$(find dji_gimbal)/urdf/default.urdf"/>
 
-  <arg name="attitude_topic_name" default="dji_sdk/attitude"/>
-  <arg name="gimbal_angle_topic_name" default="dji_sdk/gimbal_angle"/>
+  <arg name="attitude_topic_name" default="attitude"/>
+  <arg name="gimbal_angle_topic_name" default="gimbal_angle"/>
   <arg name="gimbal_joint_states_topic_name" default="gimbal_joint_states" />
 
-  <!-- Gimbal state publisher for M600, SDK publishes in NED, but yaw is with respect to body frame-->
+  <!-- Gimbal state publisher for M600 (SDK v3.3+), SDK publishes in body frame, but yaw is with respect to north-->
   <include file="$(find dji_gimbal)/launch/gimbal_joints_publisher.launch">
 
     <arg name="attitude_topic_name" default="$(arg attitude_topic_name)"/>
