@@ -52,6 +52,7 @@ def waypoint_reached_callback(msg):
             tf2_ros.ExtrapolationException) as e:
       rospy.logwarn(e)
 
+    global counter
     row = [
       counter,
       waypoint_reached_time.to_sec(),
