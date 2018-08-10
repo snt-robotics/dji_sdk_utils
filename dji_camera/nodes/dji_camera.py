@@ -13,8 +13,6 @@ import tf2_ros
 from robot_geometry_msgs.msg import RobotState
 from dji_sdk.srv import CameraAction
 
-NODE_NAME = 'dji_camera'
-
 def transform_msg_to_list(msg):
   if msg is None:
     return list(np.full((7,), np.nan))
@@ -27,7 +25,9 @@ def waypoint_reached_callback(msg):
   waypoint_reached_time = msg.header.stamp
   before_calling_camera = rospy.Time.now()
   camera_client(0);
+  rospy.loginfo("{}: Picture was taken!".format(node_name))
 
+  global counter
   for pair in frame_id_pairs:
 
     source_frame_id = pair['source_frame_id']
@@ -36,7 +36,7 @@ def waypoint_reached_callback(msg):
 
     rospy.loginfo(('{}: Looking for transform '
                    'from {} to {} at time {:.3f}'
-                   ).format(NODE_NAME,
+                   ).format(node_name,
                             source_frame_id,
                             target_frame_id,
                             waypoint_reached_time.to_sec()))
@@ -52,7 +52,6 @@ def waypoint_reached_callback(msg):
             tf2_ros.ExtrapolationException) as e:
       rospy.logwarn(e)
 
-    global counter
     row = [
       counter,
       waypoint_reached_time.to_sec(),
@@ -60,12 +59,12 @@ def waypoint_reached_callback(msg):
     ] + transform_msg_to_list(transform)
     writer.writerow(dict(zip(fieldnames, row)))
 
-
-  global counter
   counter += 1
 
 
-rospy.init_node(NODE_NAME)
+rospy.init_node('dji_camera')
+
+node_name = rospy.get_name()
 
 tf_buffer = tf2_ros.Buffer()
 tf_listener = tf2_ros.TransformListener(tf_buffer)
@@ -83,7 +82,7 @@ assert len(frame_id_pairs) > 0
 
 output_directory = rospy.get_param("~output_directory")
 output_directory = os.path.join(output_directory, time.strftime('%Y%m%d-%H%M%S'))
-rospy.loginfo('{}: Output directory is: {}'.format(NODE_NAME, output_directory))
+rospy.loginfo('{}: Output directory is: {}'.format(node_name, output_directory))
 
 if not os.path.exists(output_directory):
   os.makedirs(output_directory)
@@ -95,14 +94,17 @@ fieldnames = [
   'tx', 'ty', 'tz',
   'qx', 'qy', 'qz', 'qw'
 ]
-rospy.loginfo(('{}: Loaded the following frame id pairs:'.format(NODE_NAME)))
+rospy.loginfo(('{}: Loaded the following frame id pairs:'.format(node_name)))
 for pair in frame_id_pairs:
   source_frame_id = pair['source_frame_id']
   target_frame_id = pair['target_frame_id']
   rospy.loginfo(('{}: Frame id pair is {} -> {}'
-                ).format(NODE_NAME, source_frame_id, target_frame_id))
+                ).format(node_name, source_frame_id, target_frame_id))
 
-  filename = '{}-to-{}.csv'.format(source_frame_id, target_frame_id)
+  filename = '{}__to__{}.csv'.format(
+    source_frame_id.replace('/', '-'),
+    target_frame_id.replace('/', '-')
+  )
   filepath = os.path.join(output_directory, filename)
 
   f = open(filepath, 'w')
