@@ -27,7 +27,7 @@ current_abs_orientation = None
 convert_radians_to_std_range = lambda x: ( x + math.pi ) % (2 * math.pi) - math.pi
 
 def attitude_quaternion_callback(msg):
-  q = (msg.q1, msg.q2, msg.q3, msg.q0)
+  q = (msg.quaternion.x, msg.quaternion.y, msg.quaternion.z, msg.quaternion.w)
   r, p, y = tf_conversions.transformations.euler_from_quaternion(q)
   angles = map(convert_radians_to_std_range, [y, r, p])
   global current_abs_orientation
@@ -40,10 +40,10 @@ def gimbal_callback(msg):
   h.frame_id = baselink_frame_id
 
   if not current_abs_orientation:
-    rospy.logwarn('%s: Did NOT receive ~attitude_quaternion msg, so can\'t corrent to north', NODE_NAME)
+    rospy.logwarn_throttle(1, '{}: Did NOT receive ~attitude_quaternion msg, so can\'t corrent to north'.format(NODE_NAME))
     return
 
-  gimbal_positions = map(math.radians, [msg.yaw, msg.roll, msg.pitch])
+  gimbal_positions = map(math.radians, [msg.vector.z, msg.vector.y, msg.vector.x])
   if gimbal_ref_frame == 'ned':
     gimbal_positions = map(sub, gimbal_positions, current_abs_orientation)
   elif gimbal_ref_frame == 'ned_without_yaw':
@@ -63,7 +63,7 @@ rospy.init_node(NODE_NAME)
 baselink_frame_id = rospy.get_param('~baselink_frame_id')
 gimbal_ref_frame = rospy.get_param('~gimbal_ref_frame')
 
-rospy.Subscriber('gimbal', Gimbal, gimbal_callback)
+rospy.Subscriber('gimbal_angle', Vector3Stamped, gimbal_callback)
 
 if gimbal_ref_frame == 'ned':
   rospy.loginfo('Gimbal Yaw will be corrected to base_link by subtracting the angle to North')
@@ -73,7 +73,7 @@ else:
   rospy.logfatal("Unrecognized param value for ~gimbal_ref_frame")
   sys.exit()
 
-rospy.Subscriber('attitude_quaternion', AttitudeQuaternion, attitude_quaternion_callback)
+rospy.Subscriber('attitude', QuaternionStamped, attitude_quaternion_callback)
 gimbal_joint_states_pub = rospy.Publisher('gimbal_joint_states', JointState, queue_size = 1)
 
 rospy.spin()

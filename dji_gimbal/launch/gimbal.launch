@@ -1,0 +1,25 @@
+<launch>
+  <arg name="gimbal_urdf_file" default="$(find dji_gimbal)/urdf/zenmuse_x5r_gimbal.urdf"/>
+
+  <arg name="attitude_topic_name" default="dji_sdk/attitude"/>
+  <arg name="gimbal_angle_topic_name" default="dji_sdk/gimbal_angle"/>
+  <arg name="gimbal_joint_states_topic_name" default="gimbal_joint_states" />
+
+  <!-- Gimbal state publisher for M600, SDK publishes in NED, but yaw is with respect to body frame-->
+  <include file="$(find dji_gimbal)/launch/gimbal_joints_publisher.launch">
+
+    <arg name="attitude_topic_name" default="$(arg attitude_topic_name)"/>
+    <arg name="gimbal_angle_topic_name" default="$(arg gimbal_angle_topic_name)"/>
+    <arg name="gimbal_joint_states_topic_name" default="$(arg gimbal_joint_states_topic_name)" />
+
+    <arg name="gimbal_ref_frame" value="ned_without_yaw"/>
+    <arg name="baselink_frame_id" value="robot_base_link"/>
+  </include>
+
+  <param name="gimbal/robot_description" textfile="$(arg gimbal_urdf_file)"/>
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="gimbal_state_publisher" respawn="true" output="screen" >
+    <remap from="joint_states" to="gimbal_joint_states" />
+    <remap from="robot_description" to="gimbal/robot_description" />
+  </node>
+
+</launch>

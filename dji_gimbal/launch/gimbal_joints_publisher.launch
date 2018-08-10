@@ -1,19 +1,18 @@
 <launch>
   <arg name="gimbal_ref_frame"/>
   <arg name="baselink_frame_id"/>
-  <arg name="gimbal_urdf_file"/>
 
-  <group ns="dji_sdk">
-    <node name="gimbal_joints_publisher" pkg="dji_gimbal" type="gimbal_joints_publisher.py" respawn="true" output="screen">
-      <param name="baselink_frame_id" type="string" value="$(arg baselink_frame_id)" />
-      <param name="gimbal_ref_frame" type="string" value="$(arg gimbal_ref_frame)" />
-    </node>
-    
-    <param name="gimbal/robot_description" textfile="$(arg gimbal_urdf_file)"/>
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="gimbal_state_publisher" >
-      <param name="tf_prefix" type="string" value="DJI"/>
-      <remap from="joint_states" to="gimbal_joint_states" />
-      <remap from="robot_description" to="gimbal/robot_description"/>
-    </node>
-  </group>
+  <arg name="attitude_topic_name" default="attitude"/>
+  <arg name="gimbal_angle_topic_name" default="gimbal_angle"/>
+
+  <arg name="gimbal_joint_states_topic_name" default="gimbal_joint_states" />
+
+  <node name="gimbal_joints_publisher" pkg="dji_gimbal" type="gimbal_joints_publisher.py" respawn="true" output="screen">
+    <param name="baselink_frame_id" type="string" value="$(arg baselink_frame_id)" />
+    <param name="gimbal_ref_frame" type="string" value="$(arg gimbal_ref_frame)" />
+    <remap from="attitude" to="$(arg attitude_topic_name)"/>
+    <remap from="gimbal_angle" to="$(arg gimbal_angle_topic_name)"/>
+    <remap from="gimbal_joint_states" to="$(arg gimbal_joint_states_topic_name)" />
+  </node>
+
 </launch>
