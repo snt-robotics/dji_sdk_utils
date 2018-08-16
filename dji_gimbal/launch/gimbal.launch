@@ -5,7 +5,7 @@
   <arg name="gimbal_angle_topic_name" default="gimbal_angle"/>
   <arg name="gimbal_joint_states_topic_name" default="gimbal_joint_states" />
 
-  <arg name="gimbal_ref_frame" value="ned_without_yaw"/>
+  <arg name="gimbal_ref_frame" default="ned_without_yaw"/>
 
   <!-- Gimbal state publisher for M600 (SDK v3.3+), SDK publishes in NED frame -->
   <include file="$(find dji_gimbal)/launch/gimbal_joints_publisher.launch">
