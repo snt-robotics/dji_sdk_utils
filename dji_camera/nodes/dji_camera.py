@@ -10,8 +10,26 @@ import numpy as np
 import rospy
 import tf2_ros
 
+from functools import wraps, partial
+
 from robot_geometry_msgs.msg import RobotState
 from dji_sdk.srv import CameraAction
+
+from std_srvs.srv import Trigger, TriggerResponse
+
+def get_transform(source_frame, target_frame, at_time):
+  transform = None
+  try:
+    transform = tf_buffer.lookup_transform(source_frame,
+                                           target_frame,
+                                           at_time,
+                                           timeout=rospy.Duration(0.1))
+
+  except (tf2_ros.LookupException,
+          tf2_ros.ConnectivityException,
+          tf2_ros.ExtrapolationException) as e:
+    rospy.logwarn(e)
+  return transform
 
 def transform_msg_to_list(msg):
   if msg is None:
@@ -21,7 +39,23 @@ def transform_msg_to_list(msg):
   rot  = msg.transform.rotation
   return [tran.x, tran.y, tran.z, rot.x, rot.y, rot.z, rot.w]
 
+def start_camera(request):
+  global stopped
+  stopped = False
+  return TriggerResponse(True, "Camera started!")
+
+def stop_camera(request):
+  global stopped
+  stopped = True
+  return TriggerResponse(True, "Camera stopped!")
+
 def waypoint_reached_callback(msg):
+
+  global stopped
+  if stopped:
+    rospy.logwarn("{}: Camera is stopped!".format(node_name))
+    return
+
   waypoint_reached_time = msg.header.stamp
   before_calling_camera = rospy.Time.now()
   camera_client(0);
@@ -41,28 +75,28 @@ def waypoint_reached_callback(msg):
                             target_frame_id,
                             waypoint_reached_time.to_sec()))
 
-    transform = None
-    try:
-      transform = tf_buffer.lookup_transform(source_frame_id,
-                                             target_frame_id,
-                                             waypoint_reached_time)
 
-    except (tf2_ros.LookupException,
-            tf2_ros.ConnectivityException,
-            tf2_ros.ExtrapolationException) as e:
-      rospy.logwarn(e)
+    waypoint_time = True
+    transform = get_transform(source_frame_id, target_frame_id, waypoint_reached_time)
+    if transform is None:
+      rospy.logwarn(("{}: Obtaining transform at waypoint time failed!"
+                     " Trying at camera picture taken time!").format(node_name))
+      transform = get_transform(source_frame_id, target_frame_id, before_calling_camera)
+      waypoint_time = False
 
     row = [
       counter,
       waypoint_reached_time.to_sec(),
       before_calling_camera.to_sec()
-    ] + transform_msg_to_list(transform)
+    ] + transform_msg_to_list(transform) + [waypoint_time]
     writer.writerow(dict(zip(fieldnames, row)))
+    pair['file'].flush()
 
   counter += 1
 
-
 rospy.init_node('dji_camera')
+
+stopped = False
 
 node_name = rospy.get_name()
 
@@ -92,7 +126,8 @@ fieldnames = [
   'waypoint_stamp',
   'before_pic_stamp',
   'tx', 'ty', 'tz',
-  'qx', 'qy', 'qz', 'qw'
+  'qx', 'qy', 'qz', 'qw',
+  'waypoint_time__or__picture_taken_time'
 ]
 rospy.loginfo(('{}: Loaded the following frame id pairs:'.format(node_name)))
 for pair in frame_id_pairs:
@@ -118,6 +153,9 @@ counter = 0
 
 rospy.wait_for_service('camera_action')
 camera_client = rospy.ServiceProxy('camera_action', CameraAction)
+
+rospy.Service('~start', Trigger, start_camera)
+rospy.Service('~stop', Trigger, stop_camera)
 
 rospy.Subscriber('waypoint_reached', RobotState, waypoint_reached_callback)
 
