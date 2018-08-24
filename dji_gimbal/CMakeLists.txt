@@ -6,7 +6,6 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   geometry_msgs
   std_msgs
-  dji_sdk
 )
 
 catkin_python_setup()
