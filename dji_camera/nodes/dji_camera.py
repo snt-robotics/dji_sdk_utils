@@ -131,7 +131,7 @@ def waypoint_reached_callback(msg, queue):
 
 rospy.init_node('dji_camera')
 
-stopped = False
+stopped = True 
 
 node_name = rospy.get_name()
 
